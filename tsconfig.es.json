@@ -7,7 +7,7 @@
     "emitDecoratorMetadata": true,
     "importHelpers": false,
     "inlineSourceMap": false,
-    "module": "amd",
+    "module": "ES6",
     "moduleResolution": "node",
     "newLine": "lf",
     "noFallthroughCasesInSwitch": true,
