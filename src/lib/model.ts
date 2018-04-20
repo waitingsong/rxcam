@@ -4,12 +4,20 @@ export type StreamIdx = number // the track index of camera output. 0 for primar
 export type DevLabel = string
 export type stor = string | HTMLElement
 export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
+export type CamSym = symbol
 
+export interface RxCamEvent {
+  action: string
+  payload: {
+    sym?: CamSym
+    [prop: string]: any,
+  }
+}
 
-export interface BaseConfig {
+export interface VideoConfig {
   ctx: stor
   debug: boolean
-  devLabels: string[] | null
+  devLabels?: DevLabel[]
   flipHoriz: boolean
   fps: number
   previewHeight: number
@@ -17,14 +25,14 @@ export interface BaseConfig {
   useDefault: boolean // use default camera during labelList empty
 }
 
-export interface StreamConfig extends BaseConfig {
+export interface StreamConfig {
   deviceName?: string
   deviceId?: string  // MediaTrackConstraints.deviceId
   streamIdx: StreamIdx
   [prop: string]: any
 }
 
-export interface SnapParams {
+export interface SnapOpts {
   dataType: ImgDataType
   imageFormat: 'jpeg' | 'png'
   flipHoriz: boolean
@@ -36,7 +44,7 @@ export interface SnapParams {
   width: number
 }
 
-export interface Config extends BaseConfig, SnapParams {
+export interface Config extends VideoConfig, SnapOpts {
   multiOptions?: StreamConfig[]
 }
 
@@ -47,8 +55,8 @@ export interface Webcam {
   // config = <Config> { ...cam.config, ...config }
   inited: boolean
   live: boolean
-  streamMap: Map
-  streamConfigMap: Map
+  streamMap: Map<StreamIdx, MediaStream | void>
+  streamConfigMap: Map<StreamIdx, StreamConfig>
   currStreamIdx: number
   retryCount: number
 }
