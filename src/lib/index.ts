@@ -59,7 +59,7 @@ const initialConfig: Config = {
 let initialized = false
 
 
-export default function init(vconfig: VideoConfig, sopts?: SnapOpts): Subject<RxCamEvent> {
+export function init(vconfig: VideoConfig, sopts?: SnapOpts): Subject<RxCamEvent> {
   if (initialized) {
     throw new Error('not initialize no more')
   }
