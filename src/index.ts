@@ -4,36 +4,35 @@ import {
   map,
   pluck,
 } from 'rxjs/operators'
+import { websocket } from 'rxjs/websocket'
 
+import {
+  Config,
+  RxEvent,
+  SnapOpts,
+  StreamConfig,
+  VideoConfig,
+  VideoIdx,
+} from './lib/model'
 import {
   assertNever,
 } from './shared'
 
 import {
-  Config,
-  RxCamEvent,
-  SnapOpts,
-  StreamConfig,
-  VideoConfig,
-} from './lib/model'
+  invokePermission,
+} from './lib/device'
+import {
+  switchVideo,
+} from './lib/media'
+import {
+  initUI,
+} from './lib/ui'
 
-
-const initialVideoConfig: VideoConfig = {
-  ctx: '',
-  debug: false,
-  devLabels: [],
-  flipHoriz: false,
-  fps: 30,
-  previewWidth: 400,
-  previewHeight: 300,
-  useDefault: false, // use default camera during labelList empty
-}
 
 const initialStreamConfig: StreamConfig = {
   streamIdx: 0,
   deviceName: '',
   deviceId: '',  // MediaTrackConstraints.deviceId
-  ...initialVideoConfig,
 }
 
 const initialSnapParams: SnapOpts = {
@@ -48,23 +47,18 @@ const initialSnapParams: SnapOpts = {
   switchDelay: 0,
 }
 
-const initialConfig: Config = {
-  multiOptions: [],
-  ...initialVideoConfig,
-  ...initialSnapParams,
-}
 
-let initialized = false
+let inited = false
 
 
-export function init(vconfig: VideoConfig, sopts?: SnapOpts): Subject<RxCamEvent> {
-  if (initialized) {
+export async function init(config: Partial<VideoConfig>, sopts?: SnapOpts): Promise<Subject<RxEvent>> {
+  if (inited) {
     throw new Error('not initialize no more')
   }
-  const subject = new Subject<RxCamEvent>()
+  const subject = new Subject<RxEvent>()
 
   const sym = Symbol(Math.random())
-  const initialRxCamEvent: RxCamEvent = {
+  const initialRxEvent: RxEvent = {
     action: 'n/a',
     payload: { sym },
   }
@@ -73,9 +67,9 @@ export function init(vconfig: VideoConfig, sopts?: SnapOpts): Subject<RxCamEvent
   stream$
     .pipe(
       map((elm: any) => {
-        // console.log('elm:', elm)
+        console.info('elm:', elm)
 
-        const eventAction = <RxCamEvent> { ...initialRxCamEvent }
+        const eventAction = <RxEvent> { ...initialRxEvent }
 
         return eventAction
       })
@@ -83,10 +77,20 @@ export function init(vconfig: VideoConfig, sopts?: SnapOpts): Subject<RxCamEvent
     .subscribe(subject)
 
   subject.subscribe(ev => {
-    // console.log('inner ev', ev)
+    console.info('inner ev', ev)
   })
 
-  initialized = true
+  const [vconfig, video] = initUI(config)
+
+  try {
+    await invokePermission()
+    await connect(0, video)
+  }
+  catch (ex) {
+    console.info('camera access permission rejected')
+  }
+
+  inited = true
   return subject
 }
 
@@ -103,4 +107,8 @@ function bindClickEvent(ctx?: HTMLDivElement) {
   //     pluck<MouseEvent, HTMLElement>('target'),
   //     filter(eventFilter)
   //   )
+}
+
+export function connect(videoIdx: VideoIdx, video: HTMLVideoElement) {
+  return switchVideo(videoIdx, video)
 }

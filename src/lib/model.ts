@@ -1,12 +1,13 @@
-export type Guid = number
 export type CamIdx = number // index of multi cameras
-export type StreamIdx = number // the track index of camera output. 0 for primaray/master, 1 for secondary/slave
-export type DevLabel = string
-export type stor = string | HTMLElement
-export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
 export type CamSym = symbol
+export type DeviceId = string
+export type DevLabel = string
+export type Guid = number
+export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
+export type StreamIdx = number // the track index of camera output. 0 for primaray/master, 1 for secondary/slave
+export type VideoIdx = number // the video track index of camera output. 0 for primaray/master, 1 for secondary/slave
 
-export interface RxCamEvent {
+export interface RxEvent {
   action: string
   payload: {
     sym?: CamSym
@@ -15,13 +16,15 @@ export interface RxCamEvent {
 }
 
 export interface VideoConfig {
-  ctx: stor
+  ctx: HTMLElement
   debug: boolean
-  devLabels?: DevLabel[]
+  devLabels: DevLabel[]
   flipHoriz: boolean
   fps: number
-  previewHeight: number
-  previewWidth: number
+  width: number
+  height: number
+  previewWidth?: number // if omit use width value
+  previewHeight?: number  // if omit use height value
   useDefault: boolean // use default camera during labelList empty
 }
 
