@@ -19,12 +19,19 @@ const banner = `
 `.trim()
 const globals = {
   'rxjs/operators': 'rxjs.operators',
+  'rxjs/websocket': 'rxjs.websocket',
 }
+const name = parseUMDName(pkg.name)
+const external = [
+  'rxjs', 'rxjs/operators', 'rxjs/websocket', 
+  'fs', 'path', 'util', 'os',
+]
+
 
 const config = [
   // CommonJS (for Node) and ES module (for bundlers) build.
   {
-    external: ['rxjs', 'rxjs/operators', 'fs', 'path', 'util', 'os'],
+    external,
     input: pkg.module,
     output: [
       { 
@@ -33,11 +40,11 @@ const config = [
         file: pkg.es2015, 
       },
       { file: pkg.main, 
-        amd: { id: pkg.name },
+        amd: { id: name },
         banner,
         format: 'umd',
         globals,
-        name: pkg.name,
+        name,
       },
     ],
   },
@@ -45,6 +52,29 @@ const config = [
 
 // browser-friendly UMD build
 if (pkg.browser ) {
+  // bundle
+  config.push({
+    external: [],
+    input: pkg.module,
+    plugins: [
+      resolve({
+        browser: true,
+        jsnext: true,
+        main: true,
+      }),
+      commonjs(),
+    ],
+    output: {
+      amd: { id: name },
+      banner,
+      file: pkg.browser,
+      format: 'umd',
+      globals,
+      name,
+    },
+  })
+
+  // bundle min
   config.push({
     external: [],
     input: pkg.module,
@@ -58,15 +88,23 @@ if (pkg.browser ) {
       production && uglify(),
     ],
     output: {
-      amd: { id: pkg.name },
+      amd: { id: name },
       banner,
-      file: pkg.browser,
+      file: pkg.browser.slice(0, -3) + '.min.js',
       format: 'umd',
       globals,
-      name: pkg.name,
+      name,
       sourcemap: true,
     },
   })
+}
+
+// remove pkg.name extension if exists
+function parseUMDName(name) {
+  if (name && name.slice(-3).toLowerCase() === '.js') {
+    return name.slice(0, -3)
+  }
+  return name
 }
 
 export default config
