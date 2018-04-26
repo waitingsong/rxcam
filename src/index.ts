@@ -10,8 +10,10 @@ import {
   findDevices,
   getMediaDeviceInfo,
   getNextVideoIdx,
+  getVideoMediaDeviceSize,
   invokePermission,
   parseDeviceIdOrder,
+  resetDeviceMap,
 } from './lib/device'
 import { switchVideoByDeviceId, takePhoto, unattachStream } from './lib/media'
 import {
@@ -130,14 +132,18 @@ export async function init(initialOpts: InitialOpts): Promise<Webcam> {
   const sopts: SnapOpts = { ...initialSnapOpts, ...snapOpts }
   const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
 
+  await resetDeviceInfo()
+
+  return new Webcam(vconfig, sopts, video, labels)
+}
+
+export async function resetDeviceInfo(): Promise<void> {
   try {
+    // resetDeviceMap()
     await invokePermission()
     await findDevices()
   }
   catch (ex) {
     console.info(ex)
   }
-
-  return new Webcam(vconfig, sopts, video, labels)
 }
-

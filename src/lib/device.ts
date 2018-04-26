@@ -42,11 +42,15 @@ export function findDevices() {
     .then((devicesInfo: MediaDeviceInfo[]) => {
       for (const dev of devicesInfo) {
         if (dev.deviceId) {
+          if (isMediaDeviceExistsInMap(dev.deviceId)) {
+            continue
+          }
+
           if (dev.kind === 'videoinput' || dev.kind === 'audioinput') {
             deviceMap.set(dev.deviceId, dev)
           }
           if (dev.kind === 'videoinput') {
-            const size = videoIdxMap.size
+            const size = getVideoMediaDeviceSize()
 
             videoIdxMap.set(size, dev.deviceId)
           }
@@ -55,6 +59,10 @@ export function findDevices() {
     })
 }
 
+
+export function isMediaDeviceExistsInMap(deviceId: DeviceId): boolean {
+  return deviceMap.has(deviceId)
+}
 
 // get a MediaStream
 export function getMediaDeviceByDeviceId(deviceId: DeviceId) {
@@ -104,7 +112,7 @@ export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId
     id && ret.push(id)
   }
 
-  if (ret.length >= videoIdxMap.size) {
+  if (ret.length >= getVideoMediaDeviceSize()) {
     return ret
   }
   for (const [, deviceId] of videoIdxMap) {
@@ -157,7 +165,16 @@ export function getDeviceIdxByDeviceId(deviceId: DeviceId): VideoIdx | void {
   }
 }
 
-
 export function getMediaDeviceInfo(deviceId: DeviceId): MediaDeviceInfo | null {
   return deviceId ? <MediaDeviceInfo> deviceMap.get(deviceId) : null
+}
+
+export function getVideoMediaDeviceSize(): number {
+  return videoIdxMap.size
+}
+
+
+export function resetDeviceMap() {
+  videoIdxMap.clear()
+  deviceMap.clear()
 }
