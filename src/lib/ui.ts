@@ -4,6 +4,7 @@ import {
 
 
 export const initialVideoConfig: VideoConfig = {
+  autoPlay: true,
   ctx: window.document.body,
   debug: false,
   devLabels: [],
@@ -48,7 +49,7 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   const scaleY = config.previewHeight / config.height
   const video = <HTMLVideoElement> document.createElement('video')
 
-  // video.setAttribute('autoplay', 'autoplay')
+  config.autoPlay && video.setAttribute('autoplay', 'autoplay')
 
   if (video.style) {
     video.style.width = '' + config.width + 'px'

@@ -12,13 +12,13 @@ import {
 } from './config'
 
 import {
-  getDeviceByIdx,
+  getMediaDeviceByIdx,
 } from './device'
 
 
 
-export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promise<void> {
-  const device = getDeviceByIdx(videoIdx)
+export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promise<VideoIdx> {
+  const device = getMediaDeviceByIdx(videoIdx)
 
   if (!device) {
     return Promise.reject('getDeivceByIdx empty')
@@ -52,12 +52,14 @@ export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promis
         return Promise.reject('vedio or stream blank during switch camera')
       }
     })
+    .then(() => {
+      return videoIdx
+    })
 }
 
 function attachStream(videoIdx: VideoIdx, stream: MediaStream, video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
     if (stream && video) {
-      debugger
       video.onloadedmetadata = ev => {
         // inst.streamMap.set(videoIdx, stream)
         // inst.currStreamIdx = videoIdx
@@ -70,4 +72,8 @@ function attachStream(videoIdx: VideoIdx, stream: MediaStream, video: HTMLVideoE
       reject('attach_stream() params inst or stream invalid')
     }
   })
+}
+
+export function unattachStream(video: HTMLVideoElement) {
+  video.srcObject = null
 }

@@ -16,6 +16,7 @@ export interface RxEvent {
 }
 
 export interface VideoConfig {
+  autoPlay: boolean
   ctx: HTMLElement
   debug: boolean
   devLabels: DevLabel[]

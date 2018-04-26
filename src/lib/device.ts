@@ -10,40 +10,32 @@ import {
 } from './model'
 
 
-export function findDevices() {
+export function invokePermission(): Promise<void> {
   let time: any
 
-  return Promise.race(
-    [
-      new Promise<void>((resolve, reject) => {
-        time = setTimeout(() => {
-          reject('findDevice timeout')
-        }, 30000) // @HARDCODED
-      }),
+  return Promise.race([
+    new Promise<void>((resolve, reject) => {
+      time = setTimeout(() => {
+        reject('findDevice timeout')
+      }, 30000) // @HARDCODED
+    }),
 
-      enumerateDevices().then(() => {
-        // if (!permission) {
-        //   // invoke permission
-        //   return invodePermission()
-        // }
-
-        // return invokePermission()
-      }),
-    ]
-  )
-    .then((err: void | Error) => {
+    mediaDevices.getUserMedia({
+      audio: false,
+      video: true,
+    }),
+  ])
+    .then(() => {
       clearTimeout(time)
-      throw err
     })
     .catch(err => {
       clearTimeout(time)
-      // handleError(err)
       throw err
     })
-
 }
 
-export function enumerateDevices(): Promise<void> {
+
+export function findDevices() {
   return mediaDevices.enumerateDevices()
     .then((devicesInfo: MediaDeviceInfo[]) => {
       for (const dev of devicesInfo) {
@@ -52,7 +44,6 @@ export function enumerateDevices(): Promise<void> {
             deviceMap.set(dev.deviceId, dev)
           }
           if (dev.kind === 'videoinput') {
-            debugger
             const size = videoIdxMap.size
 
             videoIdxMap.set(size, dev.deviceId)
@@ -62,25 +53,38 @@ export function enumerateDevices(): Promise<void> {
     })
 }
 
-export function invokePermission(): Promise<void> {
-  return mediaDevices.getUserMedia({
-    audio: false,
-    video: true,
-  })
-    .then(stream => {
-      return enumerateDevices()
-    })
-}
 
 // get a MediaStream
-export function getDeviceByDeviceId(deviceId: DeviceId) {
+export function getMediaDeviceByDeviceId(deviceId: DeviceId) {
   return deviceMap.get(deviceId)
 }
 
-export function getDeviceByIdx(videoIdx: VideoIdx): MediaDeviceInfo | void {
+export function getMediaDeviceByIdx(videoIdx: VideoIdx): MediaDeviceInfo | void {
   const deviceId = videoIdxMap.get(videoIdx)
 
   if (deviceId) {
-    return getDeviceByDeviceId(deviceId)
+    return getMediaDeviceByDeviceId(deviceId)
   }
+}
+
+// validate camera available
+export function isVideoAvailable(videoIdx: VideoIdx) {
+  return videoIdxMap.has(videoIdx)
+}
+
+// get next available mediadevice video index
+export function getNextVideoIdx(curVideoIdx: VideoIdx): VideoIdx | void {
+  const nextIdx = curVideoIdx + 1
+
+  if (isVideoAvailable(nextIdx)) {
+    return nextIdx
+  }
+  const ids = [...videoIdxMap.keys()]
+
+  if (ids.length === 1) {
+    return
+  }
+  ids.push(ids[0])
+
+  return ids[ids.indexOf(curVideoIdx) + 1]
 }
