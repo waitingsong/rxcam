@@ -1,5 +1,3 @@
-import { assertNever } from './shared'
-
 import {
   deviceMap,
   mediaDevices,
@@ -12,6 +10,7 @@ import {
   VideoConfig,
   VideoIdx,
 } from './model'
+import { assertNever } from './shared'
 
 
 export function invokePermission(): Promise<void> {
@@ -53,7 +52,7 @@ export function findDevices() {
             videoIdxMap.set(size, dev.deviceId)
           }
         }
-      }
+      } // for END
     })
 }
 
