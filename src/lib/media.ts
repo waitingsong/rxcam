@@ -24,12 +24,6 @@ export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promis
     return Promise.reject('getDeivceByIdx empty')
   }
   const { deviceId, label } = device
-
-  // const last = inst.streamMap.get(sidx)
-  // if (last) {
-  //   return attach_stream(inst, sidx, last)
-  // }
-
   const vOpts = <MediaTrackConstraints> {
     width: {
       ideal: 400,
