@@ -99,7 +99,7 @@ export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId
     return ret
   }
   for (const label of deviceLabelOrder) {
-    const id = searchMediaDeviceIdByLabel(label)
+    const id = searchVideoMediaDeviceIdByLabel(label)
 
     id && ret.push(id)
   }
@@ -117,7 +117,7 @@ export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId
 }
 
 // string/regex match, case insensitive
-export function searchMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void {
+export function searchVideoMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void {
   if (!label) {
     return
   }
@@ -126,8 +126,10 @@ export function searchMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void 
     label = label.trim()
     // precise match
     for (const [id, device] of deviceMap.entries()) {
-      if (device.label && device.label.includes(label)) {
-        return id
+      if (device.kind === 'videoinput') {
+        if (device.label && device.label.includes(label)) {
+          return id
+        }
       }
     }
   }
@@ -153,4 +155,9 @@ export function getDeviceIdxByDeviceId(deviceId: DeviceId): VideoIdx | void {
       return videoIdx
     }
   }
+}
+
+
+export function getMediaDeviceInfo(deviceId: DeviceId): MediaDeviceInfo | null {
+  return deviceId ? <MediaDeviceInfo> deviceMap.get(deviceId) : null
 }

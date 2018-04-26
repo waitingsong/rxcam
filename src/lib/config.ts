@@ -37,6 +37,6 @@ export const initialSnapOpts: SnapOpts = {
   height: 300,
   jpegQuality: 95,
   videoIdx: 0,
-  snapDelay: 100,
+  snapDelay: 0,
   switchDelay: 0,
 }

@@ -8,6 +8,7 @@ import {
 import { initialSnapOpts } from './lib/config'
 import {
   findDevices,
+  getMediaDeviceInfo,
   getNextVideoIdx,
   invokePermission,
   parseDeviceIdOrder,
@@ -26,7 +27,6 @@ import { initUI } from './lib/ui'
 
 export class Webcam {
   curDeviceIdx: VideoIdx
-  deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
   constructor(
     public vconfig: VideoConfig,
@@ -37,6 +37,8 @@ export class Webcam {
     this.curDeviceIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
   }
+
+  private deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
   connect(videoIdx?: VideoIdx) {
     const vidx = videoIdx ? videoIdx : 0
@@ -82,13 +84,42 @@ export class Webcam {
 
   snapshot(snapOpts?: SnapOpts) {
     const sopts = snapOpts ? { ...this.snapOpts, ...snapOpts } : this.snapOpts
-    this.pauseVideo()
+    const { snapDelay } = sopts
 
-    return takePhoto(this.video, sopts)
-    .then(url => {
-      this.playVideo()
-      return url
-    })
+    if (snapDelay > 0) {
+      return new Promise(resolve => {
+        setTimeout(() => {
+          takePhoto(this.video, sopts)
+            .then(url => {
+              resolve(url)
+            })
+        }, snapDelay)
+      })
+    }
+    else {
+      this.pauseVideo()
+
+      return takePhoto(this.video, sopts)
+        .then(url => {
+          this.playVideo()
+          return url
+        })
+    }
+  }
+
+  getDeviceIds() {
+    return this.deviceIdOrder
+  }
+
+  getAllVideoInfo() {
+    const ret = <MediaDeviceInfo[]> []
+
+    for (const deviceId of this.deviceIdOrder) {
+      const info = getMediaDeviceInfo(deviceId)
+
+      info && ret.push(info)
+    }
+    return ret
   }
 
 }
