@@ -1,25 +1,13 @@
 import {
+  initialVideoConfig,
+} from './config'
+import {
   VideoConfig,
 } from './model'
 
 
-export const initialVideoConfig: VideoConfig = {
-  autoPlay: true,
-  ctx: window.document.body,
-  debug: false,
-  devLabels: [],
-  flipHoriz: false,
-  fps: 30,
-  width: 400,
-  height: 300,
-  previewWidth: 0,
-  previewHeight: 0,
-  useDefault: false, // use default camera during labelList empty
-}
-
 export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoElement] {
   const config: VideoConfig = { ...initialVideoConfig, ...vconfig }
-  debugger
 
   if (!config.ctx) {
     throw new Error('videoConfig.ctx not a valid htmlelement')
@@ -33,10 +21,6 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   }
   if (typeof config.fps !== 'number' || config.fps < 0) {
     config.fps = 30
-  }
-
-  if (typeof config.devLabels === 'undefined' || !Array.isArray(config.devLabels)) {
-    config.devLabels = []
   }
 
   if (! config.previewWidth || config.previewWidth <= 0) {

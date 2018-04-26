@@ -1,11 +1,19 @@
 export type CamIdx = number // index of multi cameras
 export type CamSym = symbol
 export type DeviceId = string
-export type DevLabel = string
+export type DeviceLabel = string | RegExp
+export type DeviceLabelOrder = DeviceLabel[]
 export type Guid = number
 export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
 export type StreamIdx = number // the track index of camera output. 0 for primaray/master, 1 for secondary/slave
 export type VideoIdx = number // the video track index of camera output. 0 for primaray/master, 1 for secondary/slave
+
+
+export interface InitialOpts {
+  config: Partial<VideoConfig>
+  snapOpts?: SnapOpts
+  deviceLabelOrder?: DeviceLabelOrder
+}
 
 export interface RxEvent {
   action: string
@@ -19,11 +27,11 @@ export interface VideoConfig {
   autoPlay: boolean
   ctx: HTMLElement
   debug: boolean
-  devLabels: DevLabel[]
   flipHoriz: boolean
   fps: number
   width: number
   height: number
+  deviceLabelOrder: Array<string | RegExp>
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
   useDefault: boolean // use default camera during labelList empty
@@ -46,10 +54,6 @@ export interface SnapOpts {
   snapDelay: number
   switchDelay: number
   width: number
-}
-
-export interface Config extends VideoConfig, SnapOpts {
-  multiOptions?: StreamConfig[]
 }
 
 export interface Webcam {

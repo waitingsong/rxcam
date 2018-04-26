@@ -1,3 +1,5 @@
+import { assertNever } from '../shared/index'
+
 import {
   deviceMap,
   mediaDevices,
@@ -5,6 +7,8 @@ import {
 } from './config'
 import {
   DeviceId,
+  DeviceLabel,
+  DeviceLabelOrder,
   VideoConfig,
   VideoIdx,
 } from './model'
@@ -87,4 +91,59 @@ export function getNextVideoIdx(curVideoIdx: VideoIdx): VideoIdx | void {
   ids.push(ids[0])
 
   return ids[ids.indexOf(curVideoIdx) + 1]
+}
+
+// parse deivceId Array matched by value of deviceOrderByLabe
+export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId[] {
+  const ret: DeviceId[] = []
+
+  if (! deviceLabelOrder || ! Array.isArray(deviceLabelOrder) || ! deviceLabelOrder.length) {
+    return ret
+  }
+  for (const label of deviceLabelOrder) {
+    const id = searchMediaDeviceIdByLabel(label)
+
+    id && ret.push(id)
+  }
+
+  if (ret.length >= videoIdxMap.size) {
+    return ret
+  }
+  for (const [, deviceId] of videoIdxMap) {
+    if (! ret.includes(deviceId)) {
+      ret.push(deviceId)
+    }
+  }
+
+  return ret
+}
+
+// string/regex match, case insensitive
+export function searchMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void {
+  if (!label) {
+    return
+  }
+
+  if (typeof label === 'string') {
+    label = label.trim()
+    // precise match
+    for (const [id, device] of deviceMap.entries()) {
+      if (device.label && device.label.includes(label)) {
+        return id
+      }
+    }
+  }
+  else if (typeof label === 'object') {
+    // regex match
+    const regex = new RegExp(label)
+
+    for (const [id, device] of deviceMap.entries()) {
+      if (device.label && regex.test(device.label)) {
+        return id
+      }
+    }
+  }
+  else {
+    assertNever(label)
+  }
 }

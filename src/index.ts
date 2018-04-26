@@ -6,78 +6,44 @@ import {
 } from 'rxjs/operators'
 
 import {
-  Config,
-  RxEvent,
-  SnapOpts,
-  StreamConfig,
-  VideoConfig,
-  VideoIdx,
-} from './lib/model'
-import {
-  assertNever,
-} from './shared'
-
+  initialSnapParams,
+} from './lib/config'
 import {
   findDevices,
   getNextVideoIdx,
   invokePermission,
+  parseDeviceIdOrder,
 } from './lib/device'
 import {
   switchVideo, unattachStream,
 } from './lib/media'
 import {
+  DeviceId,
+  DeviceLabelOrder,
+  InitialOpts,
+  SnapOpts,
+  VideoConfig,
+  VideoIdx,
+} from './lib/model'
+import {
   initUI,
 } from './lib/ui'
+import {
+  assertNever,
+} from './shared'
 
 
-const initialStreamConfig: StreamConfig = {
-  streamIdx: 0,
-  deviceName: '',
-  deviceId: '',  // MediaTrackConstraints.deviceId
-}
+// const initialStreamConfig: StreamConfig = {
+//   streamIdx: 0,
+//   deviceName: '',
+//   deviceId: '',  // MediaTrackConstraints.deviceId
+// }
 
-const initialSnapParams: SnapOpts = {
-  dataType: 'dataURL',
-  imageFormat: 'jpeg',
-  flipHoriz: false,
-  width: 400,
-  height: 300,
-  jpegQuality: 95,
-  streamIdx: 0,
-  snapDelay: 100,
-  switchDelay: 0,
-}
-
-
-
-export async function init(config: Partial<VideoConfig>, snapOpts?: SnapOpts): Promise<Webcam> {
-  // const subject = new Subject<RxEvent>()
-
-  // const sym = Symbol(Math.random())
-  // const initialRxEvent: RxEvent = {
-  //   action: 'n/a',
-  //   payload: { sym },
-  // }
-  // const stream$ = bindClickEvent()
-
-  // stream$
-  //   .pipe(
-  //     map((elm: any) => {
-  //       console.info('elm:', elm)
-
-  //       const eventAction = <RxEvent> { ...initialRxEvent }
-
-  //       return eventAction
-  //     })
-  //   )
-  //   .subscribe(subject)
-
-  // subject.subscribe(ev => {
-  //   console.info('inner ev', ev)
-  // })
-
+export async function init(initialOpts: InitialOpts): Promise<Webcam> {
+  const { config , snapOpts, deviceLabelOrder } = initialOpts
   const [vconfig, video] = initUI(config)
   const sopts: SnapOpts = { ...initialSnapParams, ...snapOpts }
+  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
 
   try {
     await invokePermission()
@@ -87,15 +53,23 @@ export async function init(config: Partial<VideoConfig>, snapOpts?: SnapOpts): P
     console.info(ex)
   }
 
-  return new Webcam(vconfig, sopts, video)
+  return new Webcam(vconfig, sopts, video, labels)
 }
 
 
 export class Webcam {
-  curVideoIdx: number
+  curVideoIdx: VideoIdx
+  deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
-  constructor(public vconfig: VideoConfig, public snapOpts: SnapOpts, public video: HTMLVideoElement) {
+  constructor(
+    public vconfig: VideoConfig,
+    public snapOpts: SnapOpts,
+    public video: HTMLVideoElement,
+    public deviceLabelOrder: DeviceLabelOrder
+  ) {
+    debugger
     this.curVideoIdx = 0
+    this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
   }
 
   connect(videoIdx?: VideoIdx) {
