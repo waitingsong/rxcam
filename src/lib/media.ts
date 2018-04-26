@@ -17,7 +17,8 @@ import { assertNever } from './shared'
 export function switchVideoByDeviceId(
   deviceId: DeviceId,
   video: HTMLVideoElement,
-  vconfig: VideoConfig): Promise<void> {
+  width: number,
+  height: number): Promise<void> {
 
   const device = getMediaDeviceByDeviceId(deviceId)
 
@@ -26,10 +27,10 @@ export function switchVideoByDeviceId(
   }
   const vOpts = <MediaTrackConstraints> {
     width: {
-      ideal: vconfig.width,
+      ideal: width,
     },
     height: {
-      ideal: vconfig.height,
+      ideal: height,
     },
     deviceId: { exact: deviceId },
   }

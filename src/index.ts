@@ -46,7 +46,7 @@ export class Webcam {
     const vidx = videoIdx ? videoIdx : 0
     const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
 
-    return switchVideoByDeviceId(deviceId, this.video, this.vconfig)
+    return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
       .then(() => {
         this.curDeviceIdx = vidx
       })
@@ -58,7 +58,7 @@ export class Webcam {
     if (typeof vidx === 'number') {
       const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
 
-      return switchVideoByDeviceId(deviceId, this.video)
+      return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
         .then(() => {
           this.curDeviceIdx = vidx
         })
