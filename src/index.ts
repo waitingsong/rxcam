@@ -12,7 +12,7 @@ import {
   invokePermission,
   parseDeviceIdOrder,
 } from './lib/device'
-import { switchVideoByDeviceId, unattachStream } from './lib/media'
+import { switchVideoByDeviceId, takePhoto, unattachStream } from './lib/media'
 import {
   DeviceId,
   DeviceLabelOrder,
@@ -58,7 +58,6 @@ export class Webcam {
     public video: HTMLVideoElement,
     public deviceLabelOrder: DeviceLabelOrder
   ) {
-    debugger
     this.curDeviceIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
   }
@@ -89,7 +88,7 @@ export class Webcam {
     return this.deviceIdOrder[videoIdx]
   }
 
-  disConnect() {
+  disconnect() {
     return unattachStream(this.video)
   }
 
@@ -99,6 +98,17 @@ export class Webcam {
 
   playVideo() {
     this.video.play()
+  }
+
+  snapshot(snapOpts?: SnapOpts) {
+    const sopts = snapOpts ? { ...this.snapOpts, ...snapOpts } : this.snapOpts
+    this.pauseVideo()
+
+    return takePhoto(this.video, sopts)
+    .then(url => {
+      this.playVideo()
+      return url
+    })
   }
 
 }
