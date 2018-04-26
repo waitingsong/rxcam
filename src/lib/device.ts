@@ -7,7 +7,6 @@ import {
   DeviceId,
   DeviceLabel,
   DeviceLabelOrder,
-  VideoConfig,
   VideoIdx,
 } from './model'
 import { assertNever } from './shared'

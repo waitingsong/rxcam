@@ -1,7 +1,5 @@
 import {
-  deviceMap,
   mediaDevices,
-  videoIdxMap,
 } from './config'
 import {
   getMediaDeviceByDeviceId, getMediaDeviceByIdx,
@@ -9,8 +7,6 @@ import {
 import {
   DeviceId,
   SnapOpts,
-  StreamIdx,
-  VideoConfig,
   VideoIdx,
 } from './model'
 import { assertNever } from './shared'
@@ -24,7 +20,7 @@ export function switchVideoByIdx(videoIdx: VideoIdx, video: HTMLVideoElement): P
   if (!device) {
     return Promise.reject('getDeivceByIdx empty')
   }
-  const { deviceId, label } = device
+  const { deviceId } = device
   const vOpts = <MediaTrackConstraints> {
     width: {
       ideal: 400,
@@ -58,7 +54,6 @@ export function switchVideoByDeviceId(deviceId: DeviceId, video: HTMLVideoElemen
   if (!device) {
     return Promise.reject('getDeivceByIdx empty')
   }
-  const { label } = device
   const vOpts = <MediaTrackConstraints> {
     width: {
       ideal: 400,

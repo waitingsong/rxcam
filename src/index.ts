@@ -30,24 +30,6 @@ import { initUI } from './lib/ui'
 //   deviceId: '',  // MediaTrackConstraints.deviceId
 // }
 
-export async function init(initialOpts: InitialOpts): Promise<Webcam> {
-  const { config , snapOpts, deviceLabelOrder } = initialOpts
-  const [vconfig, video] = initUI(config)
-  const sopts: SnapOpts = { ...initialSnapParams, ...snapOpts }
-  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
-
-  try {
-    await invokePermission()
-    await findDevices()
-  }
-  catch (ex) {
-    console.info(ex)
-  }
-
-  return new Webcam(vconfig, sopts, video, labels)
-}
-
-
 export class Webcam {
   curDeviceIdx: VideoIdx
   deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
@@ -112,3 +94,21 @@ export class Webcam {
   }
 
 }
+
+export async function init(initialOpts: InitialOpts): Promise<Webcam> {
+  const { config , snapOpts, deviceLabelOrder } = initialOpts
+  const [vconfig, video] = initUI(config)
+  const sopts: SnapOpts = { ...initialSnapParams, ...snapOpts }
+  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
+
+  try {
+    await invokePermission()
+    await findDevices()
+  }
+  catch (ex) {
+    console.info(ex)
+  }
+
+  return new Webcam(vconfig, sopts, video, labels)
+}
+
