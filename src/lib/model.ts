@@ -48,12 +48,12 @@ export interface SnapOpts {
   dataType: ImgDataType
   imageFormat: 'jpeg' | 'png'
   flipHoriz: boolean
+  width: number
   height: number
   jpegQuality: number
-  streamIdx: StreamIdx
+  videoIdx: StreamIdx
   snapDelay: number
   switchDelay: number
-  width: number
 }
 
 export interface Webcam {

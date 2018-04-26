@@ -5,7 +5,7 @@ import {
   pluck,
 } from 'rxjs/operators'
 
-import { initialSnapParams } from './lib/config'
+import { initialSnapOpts } from './lib/config'
 import {
   findDevices,
   getNextVideoIdx,
@@ -96,7 +96,7 @@ export class Webcam {
 export async function init(initialOpts: InitialOpts): Promise<Webcam> {
   const { config , snapOpts, deviceLabelOrder } = initialOpts
   const [vconfig, video] = initUI(config)
-  const sopts: SnapOpts = { ...initialSnapParams, ...snapOpts }
+  const sopts: SnapOpts = { ...initialSnapOpts, ...snapOpts }
   const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
 
   try {

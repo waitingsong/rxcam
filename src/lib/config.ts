@@ -29,14 +29,14 @@ export const initialVideoConfig: VideoConfig = {
   useDefault: false, // use default camera during labelList empty
 }
 
-export const initialSnapParams: SnapOpts = {
+export const initialSnapOpts: SnapOpts = {
   dataType: 'dataURL',
   imageFormat: 'jpeg',
   flipHoriz: false,
   width: 400,
   height: 300,
   jpegQuality: 95,
-  streamIdx: 0,
+  videoIdx: 0,
   snapDelay: 100,
   switchDelay: 0,
 }
