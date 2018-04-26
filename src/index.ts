@@ -93,4 +93,12 @@ export class Webcam {
     return unattachStream(this.video)
   }
 
+  pauseVideo() {
+    this.video.pause()
+  }
+
+  playVideo() {
+    this.video.play()
+  }
+
 }
