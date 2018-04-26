@@ -24,12 +24,6 @@ import {
 import { initUI } from './lib/ui'
 
 
-// const initialStreamConfig: StreamConfig = {
-//   streamIdx: 0,
-//   deviceName: '',
-//   deviceId: '',  // MediaTrackConstraints.deviceId
-// }
-
 export class Webcam {
   curDeviceIdx: VideoIdx
   deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
@@ -49,7 +43,9 @@ export class Webcam {
     const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
 
     return switchVideoByDeviceId(deviceId, this.video)
-      .then(() => this.curDeviceIdx = vidx)
+      .then(() => {
+        this.curDeviceIdx = vidx
+      })
   }
 
   connectNext() {
@@ -59,7 +55,9 @@ export class Webcam {
       const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
 
       return switchVideoByDeviceId(deviceId, this.video)
-        .then(() => this.curDeviceIdx = vidx)
+        .then(() => {
+          this.curDeviceIdx = vidx
+        })
     }
     else {
       return Promise.reject('next not available')
