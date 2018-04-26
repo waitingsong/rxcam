@@ -5,18 +5,14 @@ import {
   pluck,
 } from 'rxjs/operators'
 
-import {
-  initialSnapParams,
-} from './lib/config'
+import { initialSnapParams } from './lib/config'
 import {
   findDevices,
   getNextVideoIdx,
   invokePermission,
   parseDeviceIdOrder,
 } from './lib/device'
-import {
-  switchVideo, unattachStream,
-} from './lib/media'
+import { switchVideoByDeviceId, unattachStream } from './lib/media'
 import {
   DeviceId,
   DeviceLabelOrder,
@@ -25,9 +21,7 @@ import {
   VideoConfig,
   VideoIdx,
 } from './lib/model'
-import {
-  initUI,
-} from './lib/ui'
+import { initUI } from './lib/ui'
 
 
 // const initialStreamConfig: StreamConfig = {
@@ -55,7 +49,7 @@ export async function init(initialOpts: InitialOpts): Promise<Webcam> {
 
 
 export class Webcam {
-  curVideoIdx: VideoIdx
+  curDeviceIdx: VideoIdx
   deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
   constructor(
@@ -65,27 +59,34 @@ export class Webcam {
     public deviceLabelOrder: DeviceLabelOrder
   ) {
     debugger
-    this.curVideoIdx = 0
+    this.curDeviceIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
   }
 
   connect(videoIdx?: VideoIdx) {
     const vidx = videoIdx ? videoIdx : 0
+    const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
 
-    return switchVideo(vidx, this.video)
-      .then(curVideoIdx => this.curVideoIdx = curVideoIdx)
+    return switchVideoByDeviceId(deviceId, this.video)
+      .then(() => this.curDeviceIdx = vidx)
   }
 
   connectNext() {
-    const vidx = getNextVideoIdx(this.curVideoIdx)
+    const vidx = getNextVideoIdx(this.curDeviceIdx)
 
     if (typeof vidx === 'number') {
-      return switchVideo(vidx, this.video)
-        .then(curVideoIdx => this.curVideoIdx = curVideoIdx)
+      const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
+
+      return switchVideoByDeviceId(deviceId, this.video)
+        .then(() => this.curDeviceIdx = vidx)
     }
     else {
       return Promise.reject('next not available')
     }
+  }
+
+  getDeviceIdFromDeviceOrder(videoIdx: VideoIdx): DeviceId {
+    return this.deviceIdOrder[videoIdx]
   }
 
   disConnect() {

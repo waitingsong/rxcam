@@ -146,3 +146,12 @@ export function searchMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void 
     assertNever(label)
   }
 }
+
+export function getDeviceIdxByDeviceId(deviceId: DeviceId): VideoIdx | void {
+  //  export const videoIdxMap = new Map<VideoIdx, DeviceId>()
+  for (const [videoIdx, devId] of videoIdxMap) {
+    if (devId === deviceId) {
+      return videoIdx
+    }
+  }
+}

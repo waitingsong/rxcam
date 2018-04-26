@@ -12,12 +12,13 @@ import {
 } from './config'
 
 import {
-  getMediaDeviceByIdx,
+  getMediaDeviceByDeviceId, getMediaDeviceByIdx,
 } from './device'
 
 
 
-export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promise<VideoIdx> {
+// switch camera by device index
+export function switchVideoByIdx(videoIdx: VideoIdx, video: HTMLVideoElement): Promise<VideoIdx> {
   const device = getMediaDeviceByIdx(videoIdx)
 
   if (!device) {
@@ -40,7 +41,7 @@ export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promis
   })
     .then(stream => {
       if (stream && video) {
-        return attachStream(videoIdx, stream, video)
+        return attachStream(stream, video)
       }
       else {
         return Promise.reject('vedio or stream blank during switch camera')
@@ -50,8 +51,39 @@ export function switchVideo(videoIdx: VideoIdx, video: HTMLVideoElement): Promis
       return videoIdx
     })
 }
+// switch camera by deviceId
+export function switchVideoByDeviceId(deviceId: DeviceId, video: HTMLVideoElement): Promise<void> {
+  const device = getMediaDeviceByDeviceId(deviceId)
 
-function attachStream(videoIdx: VideoIdx, stream: MediaStream, video: HTMLVideoElement): Promise<void> {
+  if (!device) {
+    return Promise.reject('getDeivceByIdx empty')
+  }
+  const { label } = device
+  const vOpts = <MediaTrackConstraints> {
+    width: {
+      ideal: 400,
+    },
+    height: {
+      ideal: 300,
+    },
+    deviceId: { exact: deviceId },
+  }
+
+  return mediaDevices.getUserMedia({
+    audio: false,
+    video: vOpts,
+  })
+    .then(stream => {
+      if (stream && video) {
+        return attachStream(stream, video)
+      }
+      else {
+        return Promise.reject('vedio or stream blank during switch camera')
+      }
+    })
+}
+
+function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
     if (stream && video) {
       video.onloadedmetadata = ev => {
