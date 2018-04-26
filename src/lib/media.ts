@@ -7,48 +7,18 @@ import {
 import {
   DeviceId,
   SnapOpts,
+  VideoConfig,
   VideoIdx,
 } from './model'
 import { assertNever } from './shared'
 
 
-
-// switch camera by device index
-export function switchVideoByIdx(videoIdx: VideoIdx, video: HTMLVideoElement): Promise<VideoIdx> {
-  const device = getMediaDeviceByIdx(videoIdx)
-
-  if (!device) {
-    return Promise.reject('getDeivceByIdx empty')
-  }
-  const { deviceId } = device
-  const vOpts = <MediaTrackConstraints> {
-    width: {
-      ideal: 400,
-    },
-    height: {
-      ideal: 300,
-    },
-    deviceId: { exact: deviceId },
-  }
-
-  return mediaDevices.getUserMedia({
-    audio: false,
-    video: vOpts,
-  })
-    .then(stream => {
-      if (stream && video) {
-        return attachStream(stream, video)
-      }
-      else {
-        return Promise.reject('vedio or stream blank during switch camera')
-      }
-    })
-    .then(() => {
-      return videoIdx
-    })
-}
 // switch camera by deviceId
-export function switchVideoByDeviceId(deviceId: DeviceId, video: HTMLVideoElement): Promise<void> {
+export function switchVideoByDeviceId(
+  deviceId: DeviceId,
+  video: HTMLVideoElement,
+  vconfig: VideoConfig): Promise<void> {
+
   const device = getMediaDeviceByDeviceId(deviceId)
 
   if (!device) {
@@ -56,10 +26,10 @@ export function switchVideoByDeviceId(deviceId: DeviceId, video: HTMLVideoElemen
   }
   const vOpts = <MediaTrackConstraints> {
     width: {
-      ideal: 400,
+      ideal: vconfig.width,
     },
     height: {
-      ideal: 300,
+      ideal: vconfig.height,
     },
     deviceId: { exact: deviceId },
   }
@@ -116,6 +86,7 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
     ctx.scale(-1, 1)
   }
 
+  debugger
   if (video) {
     ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
 
