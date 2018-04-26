@@ -28,9 +28,6 @@ import {
 import {
   initUI,
 } from './lib/ui'
-import {
-  assertNever,
-} from './shared'
 
 
 // const initialStreamConfig: StreamConfig = {

@@ -1,4 +1,4 @@
-import { assertNever } from '../shared/index'
+import { assertNever } from './shared'
 
 import {
   deviceMap,
