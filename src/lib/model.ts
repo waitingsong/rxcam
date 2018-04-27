@@ -5,6 +5,7 @@ export type DeviceLabel = string | RegExp
 export type DeviceLabelOrder = DeviceLabel[]
 export type Guid = number
 export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
+export type ImgFormat = 'jpeg' | 'png'
 export type StreamIdx = number // the track index of camera output. 0 for primaray/master, 1 for secondary/slave
 export type VideoIdx = number // the video track index of camera output. 0 for primaray/master, 1 for secondary/slave
 
@@ -46,7 +47,7 @@ export interface StreamConfig {
 
 export interface SnapOpts {
   dataType: ImgDataType
-  imageFormat: 'jpeg' | 'png'
+  imageFormat: ImgFormat
   flipHoriz: boolean
   width: number
   height: number
@@ -67,4 +68,12 @@ export interface Webcam {
   streamConfigMap: Map<StreamIdx, StreamConfig>
   currStreamIdx: number
   retryCount: number
+}
+
+export interface ImgOpts {
+  dataType: ImgDataType
+  width: number
+  height: number
+  imageFormat: ImgFormat
+  jpegQuality: number // output
 }

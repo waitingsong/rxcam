@@ -6,6 +6,7 @@ import {
 } from './device'
 import {
   DeviceId,
+  ImgOpts,
   SnapOpts,
   VideoConfig,
   VideoIdx,
@@ -68,10 +69,7 @@ export function unattachStream(video: HTMLVideoElement) {
 }
 
 export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<string> {
-  const cvs: HTMLCanvasElement = document.createElement('canvas')
-
-  cvs.width = sopts.width
-  cvs.height = sopts.height
+  const cvs = genCanvas(sopts.width, sopts.height)
   const ctx = cvs.getContext('2d')
 
   if (!ctx) {
@@ -87,25 +85,40 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
   if (video) {
     ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
 
-    return new Promise<string>((resolve, reject) => {
-      switch (sopts.dataType) {
-        case 'dataURL':
-        case 'dataurl':
-          return resolve(cvs.toDataURL('image/' + sopts.imageFormat, sopts.jpegQuality / 100))
-
-        case 'objectURL':
-        case 'objecturl':
-          return cvs.toBlob(blob => {
-            // need call URL.revokeObjectURL(ourl) later
-            resolve(blob ? URL.createObjectURL(blob) : '')
-          }, 'image/' + sopts.imageFormat, sopts.jpegQuality / 100)
-
-        default:
-          assertNever(sopts.dataType)
-      }
-    })
+    return exportFromCanvas(cvs, sopts)
   }
   else {
     throw new Error('video empty')
   }
+}
+
+
+export function genCanvas(width: number, height: number): HTMLCanvasElement {
+  const cvs: HTMLCanvasElement = document.createElement('canvas')
+
+  cvs.width = width
+  cvs.height = height
+
+  return cvs
+}
+
+export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    switch (options.dataType) {
+      case 'dataURL':
+      case 'dataurl':
+        return resolve(cvs.toDataURL('image/' + options.imageFormat, options.jpegQuality / 100))
+
+      case 'objectURL':
+      case 'objecturl':
+        return cvs.toBlob(blob => {
+          // need call URL.revokeObjectURL(ourl) later
+          resolve(blob ? URL.createObjectURL(blob) : '')
+        }, 'image/' + options.imageFormat, options.jpegQuality / 100)
+
+      default:
+        assertNever(options.dataType)
+    }
+  })
+
 }

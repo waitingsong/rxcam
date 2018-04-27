@@ -1,5 +1,6 @@
 import {
   DeviceId,
+  ImgOpts,
   SnapOpts,
   VideoConfig,
   VideoIdx,
@@ -39,4 +40,13 @@ export const initialSnapOpts: SnapOpts = {
   videoIdx: 0,
   snapDelay: 0,
   switchDelay: 0,
+}
+
+
+export const inititalThumbnailOpts: ImgOpts = {
+  dataType: 'dataURL',
+  width: 600,
+  height: 400,
+  imageFormat: 'jpeg',
+  jpegQuality: 80,
 }
