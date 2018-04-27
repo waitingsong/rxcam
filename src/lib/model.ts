@@ -12,6 +12,8 @@ export type VideoIdx = number // the video track index of camera output. 0 for p
 
 export interface InitialOpts {
   config: Partial<VideoConfig>
+  ctx: HTMLElement
+  debug: boolean
   snapOpts?: SnapOpts
   deviceLabelOrder?: DeviceLabelOrder
 }
@@ -25,9 +27,6 @@ export interface RxEvent {
 }
 
 export interface VideoConfig {
-  autoPlay: boolean
-  ctx: HTMLElement
-  debug: boolean
   flipHoriz: boolean
   fps: number
   width: number
@@ -35,7 +34,6 @@ export interface VideoConfig {
   deviceLabelOrder: Array<string | RegExp>
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
-  useDefault: boolean // use default camera during labelList empty
 }
 
 export interface StreamConfig {

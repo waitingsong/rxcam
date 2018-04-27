@@ -125,7 +125,7 @@ export class RxCam {
 
 export async function init(initialOpts: InitialOpts): Promise<RxCam> {
   const { config , snapOpts, deviceLabelOrder } = initialOpts
-  const [vconfig, video] = initUI(config)
+  const [vconfig, video] = initUI(initialOpts.ctx, config)
   const sopts: SnapOpts = snapOpts
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }

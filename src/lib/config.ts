@@ -17,9 +17,6 @@ export const deviceMap = new Map<DeviceId, MediaDeviceInfo>()
 export const videoIdxMap = new Map<StreamIdx, DeviceId>()
 
 export const initialVideoConfig: VideoConfig = {
-  autoPlay: true,
-  ctx: window.document.body,
-  debug: false,
   flipHoriz: false,
   fps: 30,
   width: 400,
@@ -27,7 +24,6 @@ export const initialVideoConfig: VideoConfig = {
   deviceLabelOrder: [],
   previewWidth: 0,
   previewHeight: 0,
-  useDefault: false, // use default camera during labelList empty
 }
 
 export const initialSnapOpts: SnapOpts = {

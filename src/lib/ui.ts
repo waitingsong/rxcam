@@ -6,11 +6,11 @@ import {
 } from './model'
 
 
-export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoElement] {
+export function initUI(ctx: HTMLElement, vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoElement] {
   const config: VideoConfig = { ...initialVideoConfig, ...vconfig }
 
-  if (!config.ctx) {
-    throw new Error('videoConfig.ctx not a valid htmlelement')
+  if (!ctx) {
+    throw new Error('ctx not a valid htmlelement')
   }
   if (! config.width || config.width < 0 || ! config.height || config.height < 0) {
     throw new Error('previewWidth or previewHeight of preview container invalie')
@@ -27,9 +27,9 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   }
   const scaleX = config.previewWidth / config.width
   const scaleY = config.previewHeight / config.height
-  const video = <HTMLVideoElement> document.createElement('video')
+  const video = document.createElement('video')
 
-  config.autoPlay && video.setAttribute('autoplay', 'autoplay')
+  video.setAttribute('autoplay', 'autoplay')
   video.width = config.width
   video.height = config.height
   if (video.style) {
@@ -38,23 +38,20 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   }
 
   if (scaleX !== 1.01 || scaleY !== 1.01) {
-    if (config.ctx.style) {
-      config.ctx.style.overflow = 'hidden'
-    }
     if (video.style) {
       video.style.transformOrigin = '0px 0px'
       video.style.transform = 'scaleX(' + scaleX + ') scaleY(' + scaleY + ')'
     }
   }
 
-  const div = <HTMLDivElement> document.createElement('div')
+  const div = document.createElement('div')
 
   div.classList.add('rxcam-canvas-container')
   div.style.width = config.previewWidth + 'px'
   div.style.height = config.previewHeight + 'px'
   div.style.overflow = 'hidden'
   div.appendChild(video)
-  config.ctx.appendChild(div)
+  ctx.appendChild(div)
 
   return [config, video]
 }
