@@ -2,14 +2,12 @@ import {
   inititalThumbnailOpts, mediaDevices,
 } from './config'
 import {
-  getMediaDeviceByDeviceId, getMediaDeviceByIdx,
+  getMediaDeviceByDeviceId,
 } from './device'
 import {
   DeviceId,
   ImgOpts,
   SnapOpts,
-  VideoConfig,
-  VideoIdx,
 } from './model'
 import { assertNever } from './shared'
 

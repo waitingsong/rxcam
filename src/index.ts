@@ -1,19 +1,10 @@
-import { fromEvent, Subject } from 'rxjs'
-import {
-  debounceTime,
-  map,
-  pluck,
-} from 'rxjs/operators'
-
 import { initialSnapOpts } from './lib/config'
 import {
   findDevices,
   getMediaDeviceInfo,
   getNextVideoIdx,
-  getVideoMediaDeviceSize,
   invokePermission,
   parseDeviceIdOrder,
-  resetDeviceMap,
 } from './lib/device'
 import { switchVideoByDeviceId, takePhoto, takeThumbnail, unattachStream } from './lib/media'
 import {
