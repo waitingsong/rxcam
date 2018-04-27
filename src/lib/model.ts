@@ -13,7 +13,7 @@ export type VideoIdx = number // the video track index of camera output. 0 for p
 export interface InitialOpts {
   config: Partial<VideoConfig>
   ctx: HTMLElement
-  debug: boolean
+  debug?: boolean
   snapOpts?: SnapOpts
   deviceLabelOrder?: DeviceLabelOrder
   streamConfigs?: StreamConfig[]
