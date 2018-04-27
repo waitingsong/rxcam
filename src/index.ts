@@ -22,7 +22,7 @@ export * from './lib/model'
 
 
 export class RxCam {
-  curDeviceIdx: StreamIdx
+  curStreamIdx: StreamIdx
 
   constructor(
     public vconfig: VideoConfig,
@@ -30,7 +30,7 @@ export class RxCam {
     public video: HTMLVideoElement,
     public deviceLabelOrder: DeviceLabelOrder
   ) {
-    this.curDeviceIdx = 0
+    this.curStreamIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
   }
 
@@ -42,19 +42,19 @@ export class RxCam {
 
     return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
       .then(() => {
-        this.curDeviceIdx = sidx
+        this.curStreamIdx = sidx
       })
   }
 
   connectNext() {
-    const sidx = getNextVideoIdx(this.curDeviceIdx)
+    const sidx = getNextVideoIdx(this.curStreamIdx)
 
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
         .then(() => {
-          this.curDeviceIdx = sidx
+          this.curStreamIdx = sidx
         })
     }
     else {
