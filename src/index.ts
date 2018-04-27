@@ -21,7 +21,7 @@ import { initUI } from './lib/ui'
 export * from './lib/model'
 
 
-export class Webcam {
+export class RxCam {
   curDeviceIdx: StreamIdx
 
   constructor(
@@ -123,7 +123,7 @@ export class Webcam {
   }
 }
 
-export async function init(initialOpts: InitialOpts): Promise<Webcam> {
+export async function init(initialOpts: InitialOpts): Promise<RxCam> {
   const { config , snapOpts, deviceLabelOrder } = initialOpts
   const [vconfig, video] = initUI(config)
   const sopts: SnapOpts = snapOpts
@@ -133,7 +133,7 @@ export async function init(initialOpts: InitialOpts): Promise<Webcam> {
 
   await resetDeviceInfo()
 
-  return new Webcam(vconfig, sopts, video, labels)
+  return new RxCam(vconfig, sopts, video, labels)
 }
 
 export async function resetDeviceInfo(): Promise<void> {
