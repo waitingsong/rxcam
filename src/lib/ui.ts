@@ -34,7 +34,8 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   const video = <HTMLVideoElement> document.createElement('video')
 
   config.autoPlay && video.setAttribute('autoplay', 'autoplay')
-
+  video.width = config.width
+  video.height = config.height
   if (video.style) {
     video.style.width = '' + config.width + 'px'
     video.style.height = '' + config.height + 'px'
