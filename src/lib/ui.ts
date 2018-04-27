@@ -12,10 +12,6 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
   if (!config.ctx) {
     throw new Error('videoConfig.ctx not a valid htmlelement')
   }
-  const div = <HTMLDivElement> document.createElement('div')
-
-  config.ctx.appendChild(div)
-
   if (! config.width || config.width < 0 || ! config.height || config.height < 0) {
     throw new Error('previewWidth or previewHeight of preview container invalie')
   }
@@ -51,7 +47,14 @@ export function initUI(vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoEl
     }
   }
 
+  const div = <HTMLDivElement> document.createElement('div')
+
+  div.classList.add('rxcam-canvas-container')
+  div.style.width = config.previewWidth + 'px'
+  div.style.height = config.previewHeight + 'px'
+  div.style.overflow = 'hidden'
   div.appendChild(video)
+  config.ctx.appendChild(div)
 
   return [config, video]
 }
