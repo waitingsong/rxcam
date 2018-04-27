@@ -103,9 +103,6 @@ export function getNextVideoIdx(curVideoIdx: VideoIdx): VideoIdx | void {
 export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId[] {
   const ret: DeviceId[] = []
 
-  if (! deviceLabelOrder || ! Array.isArray(deviceLabelOrder) || ! deviceLabelOrder.length) {
-    return ret
-  }
   for (const label of deviceLabelOrder) {
     const id = searchVideoMediaDeviceIdByLabel(label)
 
