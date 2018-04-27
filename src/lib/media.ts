@@ -52,10 +52,7 @@ export function switchVideoByDeviceId(
 function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
     if (stream && video) {
-      video.onloadedmetadata = ev => {
-        // inst.streamMap.set(videoIdx, stream)
-        // inst.currStreamIdx = videoIdx
-        // inst.live = true
+      video.onloadeddata = ev => {
         resolve()
       }
       video.srcObject = stream
@@ -87,7 +84,6 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
     ctx.scale(-1, 1)
   }
 
-  debugger
   if (video) {
     ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
 
