@@ -124,7 +124,9 @@ export class Webcam {
 export async function init(initialOpts: InitialOpts): Promise<Webcam> {
   const { config , snapOpts, deviceLabelOrder } = initialOpts
   const [vconfig, video] = initUI(config)
-  const sopts: SnapOpts = { ...initialSnapOpts, ...snapOpts }
+  const sopts: SnapOpts = snapOpts
+    ? { ...initialSnapOpts, ...snapOpts}
+    : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
   const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
 
   await resetDeviceInfo()
