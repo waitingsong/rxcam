@@ -2,6 +2,7 @@ import {
   initialVideoConfig,
 } from './config'
 import {
+  StreamConfig,
   VideoConfig,
 } from './model'
 
@@ -54,4 +55,18 @@ export function initUI(ctx: HTMLElement, vconfig: Partial<VideoConfig>): [VideoC
   ctx.appendChild(div)
 
   return [config, video]
+}
+
+export function calcVideoMaxResolution(sconfigs: StreamConfig[]): [number, number] {
+  let width = 0
+  let height = 0
+
+  for (const config of sconfigs) {
+    if (config.width > width) {
+      width = +config.width
+      height = +config.height
+    }
+  }
+
+  return [width, height]
 }

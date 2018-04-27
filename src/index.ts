@@ -1,4 +1,4 @@
-import { initialSnapOpts } from './lib/config'
+import { initialSnapOpts, initialVideoConfig } from './lib/config'
 import {
   findDevices,
   getMediaDeviceInfo,
@@ -13,10 +13,11 @@ import {
   ImgOpts,
   InitialOpts,
   SnapOpts,
+  StreamConfig,
   StreamIdx,
   VideoConfig,
 } from './lib/model'
-import { initUI } from './lib/ui'
+import { calcVideoMaxResolution, initUI } from './lib/ui'
 
 export * from './lib/model'
 
@@ -28,7 +29,8 @@ export class RxCam {
     public vconfig: VideoConfig,
     public snapOpts: SnapOpts,
     public video: HTMLVideoElement,
-    public deviceLabelOrder: DeviceLabelOrder
+    public deviceLabelOrder: DeviceLabelOrder,
+    public streamConfigs: StreamConfig[]
   ) {
     this.curStreamIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
@@ -36,23 +38,27 @@ export class RxCam {
 
   private deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
+
   connect(streamIdx?: StreamIdx) {
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
+    const [width, height] = this.genStreamResolution(sidx)
 
-    return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
+    return switchVideoByDeviceId(deviceId, this.video, width, height)
       .then(() => {
         this.curStreamIdx = sidx
       })
   }
+
 
   connectNext() {
     const sidx = getNextVideoIdx(this.curStreamIdx)
 
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
+      const [width, height] = this.genStreamResolution(sidx)
 
-      return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
+      return switchVideoByDeviceId(deviceId, this.video, width, height)
         .then(() => {
           this.curStreamIdx = sidx
         })
@@ -62,33 +68,42 @@ export class RxCam {
     }
   }
 
+
   getDeviceIdFromDeviceOrder(sidx: StreamIdx): DeviceId {
     return this.deviceIdOrder[sidx]
   }
+
 
   disconnect() {
     return unattachStream(this.video)
   }
 
+
   pauseVideo() {
     this.video.pause()
   }
+
 
   playVideo() {
     this.video.play()
   }
 
-  snapshot(snapOpts?: SnapOpts) {
-    const sopts = snapOpts ? { ...this.snapOpts, ...snapOpts } : this.snapOpts
+
+  snapshot(snapOpts?: Partial<SnapOpts>) {
+    const [width, height] = this.genStreamResolution(this.curStreamIdx)
+    const sopts = snapOpts
+      ? { ...this.snapOpts, width, height, ...snapOpts }
+      : { ...this.snapOpts, width, height }
     const { snapDelay } = sopts
 
     if (snapDelay > 0) {
-      return new Promise(resolve => {
+      return new Promise((resolve, reject) => {
         setTimeout(() => {
           takePhoto(this.video, sopts)
             .then(url => {
               resolve(url)
             })
+            .catch(reject)
         }, snapDelay)
       })
     }
@@ -100,12 +115,18 @@ export class RxCam {
           this.playVideo()
           return url
         })
+        .catch(err => {
+          this.playVideo()
+          throw err
+        })
     }
   }
+
 
   getDeviceIds() {
     return this.deviceIdOrder
   }
+
 
   getAllVideoInfo() {
     const ret = <MediaDeviceInfo[]> []
@@ -118,22 +139,48 @@ export class RxCam {
     return ret
   }
 
+
   thumbnail(imgURL: string, options: ImgOpts): Promise<string> {
     return takeThumbnail(imgURL, options)
+  }
+
+
+  // for switchVideo
+  private genStreamResolution(sidx: StreamIdx): [number, number] {
+    const sconfig = this.streamConfigs[sidx]
+
+    if (sconfig && sconfig.width) {
+      return [sconfig.width, sconfig.height]
+    }
+
+    return [this.vconfig.width, this.vconfig.width]
   }
 }
 
 export async function init(initialOpts: InitialOpts): Promise<RxCam> {
-  const { config , snapOpts, deviceLabelOrder } = initialOpts
-  const [vconfig, video] = initUI(initialOpts.ctx, config)
+  const { config , ctx, deviceLabelOrder, snapOpts, streamConfigs } = initialOpts
+  const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
+
+  validateStreamConfigs(streamConfigs)
+  let sconfigs: StreamConfig[] = []
+
+  if (streamConfigs && streamConfigs.length) {
+    sconfigs = parseStreamConfigs(streamConfigs, vconfig.width, vconfig.height)
+    const [maxWidth, maxHeight] = calcVideoMaxResolution(sconfigs)
+
+    vconfig.width = maxWidth
+    vconfig.height = maxHeight
+  }
+
+  const [vconfig2, video] = initUI(ctx, vconfig)
+  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
   const sopts: SnapOpts = snapOpts
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
-  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
 
   await resetDeviceInfo()
 
-  return new RxCam(vconfig, sopts, video, labels)
+  return new RxCam(vconfig2, sopts, video, labels, sconfigs)
 }
 
 export async function resetDeviceInfo(): Promise<void> {
@@ -145,4 +192,39 @@ export async function resetDeviceInfo(): Promise<void> {
   catch (ex) {
     console.info(ex)
   }
+}
+
+function validateStreamConfigs(configs?: StreamConfig[]): void {
+  if (!configs) {
+    return
+  }
+  if (! Array.isArray(configs)) {
+    throw new Error('streamConfigs must be Array')
+  }
+  if (!configs.length) {
+    return
+  }
+
+  for (const config of configs) {
+    if (!config) {
+      throw new Error('At least one of deviceId, label, streamIdx should has valid value')
+    }
+    else if (typeof config.streamIdx !== 'number') {
+      throw new Error('At least one of deviceId, label, streamIdx should has valid value')
+    }
+  }
+}
+
+/**
+ * update streamConfig.width/height from vconfig if not assign
+ */
+function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
+  for (const config of sconfigs) {
+    if (! config.width && ! config.height) {
+      config.width = +width
+      config.height = +height
+    }
+  }
+
+  return sconfigs
 }

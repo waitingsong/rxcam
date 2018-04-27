@@ -16,6 +16,7 @@ export interface InitialOpts {
   debug: boolean
   snapOpts?: SnapOpts
   deviceLabelOrder?: DeviceLabelOrder
+  streamConfigs?: StreamConfig[]
 }
 
 export interface RxEvent {
@@ -29,18 +30,17 @@ export interface RxEvent {
 export interface VideoConfig {
   flipHoriz: boolean
   fps: number
-  width: number
-  height: number
+  width: number   // maybe override by max of StreamConfig['width]
+  height: number  // maybe override by max of StreamConfig['height']
   deviceLabelOrder: Array<string | RegExp>
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
 }
 
 export interface StreamConfig {
-  deviceName?: string
-  deviceId?: string  // MediaTrackConstraints.deviceId
   streamIdx: StreamIdx
-  [prop: string]: any
+  width: number
+  height: number
 }
 
 export interface SnapOpts {
@@ -50,22 +50,9 @@ export interface SnapOpts {
   width: number
   height: number
   jpegQuality: number
-  sidx: StreamIdx
+  streamIdx: StreamIdx
   snapDelay: number
   switchDelay: number
-}
-
-export interface Webcam {
-  guid: symbol
-  ctx: HTMLDivElement
-  video: HTMLVideoElement
-  // config = <Config> { ...cam.config, ...config }
-  inited: boolean
-  live: boolean
-  streamMap: Map<StreamIdx, MediaStream | void>
-  streamConfigMap: Map<StreamIdx, StreamConfig>
-  currStreamIdx: number
-  retryCount: number
 }
 
 export interface ImgOpts {
