@@ -45,8 +45,8 @@ export const initialSnapOpts: SnapOpts = {
 
 export const inititalThumbnailOpts: ImgOpts = {
   dataType: 'dataURL',
-  width: 600,
-  height: 400,
+  width: 400,
+  height: 300,
   imageFormat: 'jpeg',
-  jpegQuality: 80,
+  jpegQuality: 90,
 }

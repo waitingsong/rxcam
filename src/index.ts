@@ -15,10 +15,11 @@ import {
   parseDeviceIdOrder,
   resetDeviceMap,
 } from './lib/device'
-import { switchVideoByDeviceId, takePhoto, unattachStream } from './lib/media'
+import { switchVideoByDeviceId, takePhoto, takeThumbnail, unattachStream } from './lib/media'
 import {
   DeviceId,
   DeviceLabelOrder,
+  ImgOpts,
   InitialOpts,
   SnapOpts,
   VideoConfig,
@@ -124,6 +125,9 @@ export class Webcam {
     return ret
   }
 
+  thumbnail(imgURL: string, options: ImgOpts): Promise<string> {
+    return takeThumbnail(imgURL, options)
+  }
 }
 
 export async function init(initialOpts: InitialOpts): Promise<Webcam> {

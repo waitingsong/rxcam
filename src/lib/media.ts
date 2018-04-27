@@ -1,5 +1,5 @@
 import {
-  mediaDevices,
+  inititalThumbnailOpts, mediaDevices,
 } from './config'
 import {
   getMediaDeviceByDeviceId, getMediaDeviceByIdx,
@@ -70,11 +70,7 @@ export function unattachStream(video: HTMLVideoElement) {
 
 export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<string> {
   const cvs = genCanvas(sopts.width, sopts.height)
-  const ctx = cvs.getContext('2d')
-
-  if (!ctx) {
-    throw new Error('create ctx invalid during snapshot')
-  }
+  const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
 
   // flip canvas horizontally if desired
   if (sopts.flipHoriz) {
@@ -92,12 +88,36 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
   }
 }
 
+// take image thumbnail, output format jpeg
+export function takeThumbnail(imgURL: string, options?: Partial<ImgOpts>): Promise<string> {
+  const opts: ImgOpts = options ? { ...inititalThumbnailOpts, ...options } : inititalThumbnailOpts
+  const cvs = genCanvas(opts.width, opts.height)
+  const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
+  const img = document.createElement('img')
+
+  return new Promise((resolve, reject) => {
+    img.src = imgURL
+    img.onload = ev => {
+      ctx.drawImage(<HTMLImageElement> ev.target, 0, 0, opts.width, opts.height)
+
+      return exportFromCanvas(cvs, opts)
+        .then(resolve)
+        .catch(reject)
+    }
+    img.onerror = err => reject(err)
+  })
+}
 
 export function genCanvas(width: number, height: number): HTMLCanvasElement {
   const cvs: HTMLCanvasElement = document.createElement('canvas')
 
   cvs.width = width
   cvs.height = height
+  const ctx = cvs.getContext('2d')
+
+  if (!ctx) {
+    throw new Error('create ctx invalid during snapshot')
+  }
 
   return cvs
 }
@@ -120,5 +140,4 @@ export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Prom
         assertNever(options.dataType)
     }
   })
-
 }

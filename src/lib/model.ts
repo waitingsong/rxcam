@@ -75,5 +75,5 @@ export interface ImgOpts {
   width: number
   height: number
   imageFormat: ImgFormat
-  jpegQuality: number // output
+  jpegQuality: number // 0-100 for output
 }
