@@ -2,8 +2,8 @@ import {
   DeviceId,
   ImgOpts,
   SnapOpts,
+  StreamIdx,
   VideoConfig,
-  VideoIdx,
 } from './model'
 
 
@@ -14,7 +14,7 @@ if (! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
 
 export const mediaDevices: MediaDevices = navigator.mediaDevices
 export const deviceMap = new Map<DeviceId, MediaDeviceInfo>()
-export const videoIdxMap = new Map<VideoIdx, DeviceId>()
+export const videoIdxMap = new Map<StreamIdx, DeviceId>()
 
 export const initialVideoConfig: VideoConfig = {
   autoPlay: true,
@@ -37,7 +37,7 @@ export const initialSnapOpts: SnapOpts = {
   width: 600,
   height: 400,
   jpegQuality: 97,
-  videoIdx: 0,
+  sidx: 0,
   snapDelay: 0,
   switchDelay: 0,
 }

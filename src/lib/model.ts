@@ -52,7 +52,7 @@ export interface SnapOpts {
   width: number
   height: number
   jpegQuality: number
-  videoIdx: StreamIdx
+  sidx: StreamIdx
   snapDelay: number
   switchDelay: number
 }

@@ -13,8 +13,8 @@ import {
   ImgOpts,
   InitialOpts,
   SnapOpts,
+  StreamIdx,
   VideoConfig,
-  VideoIdx,
 } from './lib/model'
 import { initUI } from './lib/ui'
 
@@ -22,7 +22,7 @@ export * from './lib/model'
 
 
 export class Webcam {
-  curDeviceIdx: VideoIdx
+  curDeviceIdx: StreamIdx
 
   constructor(
     public vconfig: VideoConfig,
@@ -36,25 +36,25 @@ export class Webcam {
 
   private deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
-  connect(videoIdx?: VideoIdx) {
-    const vidx = videoIdx ? videoIdx : 0
-    const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
+  connect(streamIdx?: StreamIdx) {
+    const sidx = streamIdx ? +streamIdx : 0
+    const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
       .then(() => {
-        this.curDeviceIdx = vidx
+        this.curDeviceIdx = sidx
       })
   }
 
   connectNext() {
-    const vidx = getNextVideoIdx(this.curDeviceIdx)
+    const sidx = getNextVideoIdx(this.curDeviceIdx)
 
-    if (typeof vidx === 'number') {
-      const deviceId = this.getDeviceIdFromDeviceOrder(vidx)
+    if (typeof sidx === 'number') {
+      const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, this.vconfig.width, this.vconfig.height)
         .then(() => {
-          this.curDeviceIdx = vidx
+          this.curDeviceIdx = sidx
         })
     }
     else {
@@ -62,8 +62,8 @@ export class Webcam {
     }
   }
 
-  getDeviceIdFromDeviceOrder(videoIdx: VideoIdx): DeviceId {
-    return this.deviceIdOrder[videoIdx]
+  getDeviceIdFromDeviceOrder(sidx: StreamIdx): DeviceId {
+    return this.deviceIdOrder[sidx]
   }
 
   disconnect() {

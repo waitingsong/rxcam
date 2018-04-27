@@ -7,7 +7,7 @@ import {
   DeviceId,
   DeviceLabel,
   DeviceLabelOrder,
-  VideoIdx,
+  StreamIdx,
 } from './model'
 import { assertNever } from './shared'
 
@@ -69,8 +69,8 @@ export function getMediaDeviceByDeviceId(deviceId: DeviceId) {
   return deviceMap.get(deviceId)
 }
 
-export function getMediaDeviceByIdx(videoIdx: VideoIdx): MediaDeviceInfo | void {
-  const deviceId = videoIdxMap.get(videoIdx)
+export function getMediaDeviceByIdx(sidx: StreamIdx): MediaDeviceInfo | void {
+  const deviceId = videoIdxMap.get(sidx)
 
   if (deviceId) {
     return getMediaDeviceByDeviceId(deviceId)
@@ -78,12 +78,12 @@ export function getMediaDeviceByIdx(videoIdx: VideoIdx): MediaDeviceInfo | void 
 }
 
 // validate camera available
-export function isVideoAvailable(videoIdx: VideoIdx) {
-  return videoIdxMap.has(videoIdx)
+export function isVideoAvailable(sidx: StreamIdx) {
+  return videoIdxMap.has(sidx)
 }
 
 // get next available mediadevice video index
-export function getNextVideoIdx(curVideoIdx: VideoIdx): VideoIdx | void {
+export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
   const nextIdx = curVideoIdx + 1
 
   if (isVideoAvailable(nextIdx)) {
@@ -153,11 +153,10 @@ export function searchVideoMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | 
   }
 }
 
-export function getDeviceIdxByDeviceId(deviceId: DeviceId): VideoIdx | void {
-  //  export const videoIdxMap = new Map<VideoIdx, DeviceId>()
-  for (const [videoIdx, devId] of videoIdxMap) {
+export function getDeviceIdxByDeviceId(deviceId: DeviceId): StreamIdx | void {
+  for (const [sidx, devId] of videoIdxMap) {
     if (devId === deviceId) {
-      return videoIdx
+      return sidx
     }
   }
 }
