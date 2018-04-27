@@ -1,0 +1,121 @@
+<!DOCTYPE HTML>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="renderer" content="webkit">
+<title>Webcam Test Page</title>
+
+<style type="text/css">
+  body { font-family: Helvetica, sans-serif; }
+  h2, h3 { margin-top:0; }
+  .snapshot {margin: 5px; font-size: 1.2em;}
+  .preview {float:left; margin:10px;}
+  #result {float:left; margin:10px; padding:10px; border:1px solid; background:#ccc;}
+  #snap {width: auto;}
+  #code {clear: both; margin:10px; padding:10px; border:1px solid; background:#ccc;}
+</style>
+</head>
+<body>
+	<h1>Webcam Test Page</h1>
+  <h3>Demonstrates dynamic capture options</h3>
+
+  <div class="preview">
+    <input type=button class="snapshot" value="Snapshot small" onclick="takePhoto('small')">
+    <input type=button class="snapshot" value="Snapshot larget" onclick="takePhoto('large')">
+    <div id="my_camera"></div>
+  </div>
+  <div id="result">
+    <p>captured image will appear here...</p>
+    <img id="snap" />
+  </div>
+
+  <div id="code">
+    <pre>
+    &lt;script src="require.min.js" data-main="main">&lt;/script>
+    &lt;script>
+
+  function init(rxcam) {
+    const options = {
+      config: {
+        ctx: document.querySelector('#my_camera'),
+        width: 800,
+        height: 600,
+        previewWidth: 400,
+        previewHeight: 300,
+      },
+    }
+
+    rxcam.init(options)
+      .then(cam => {
+        window.cam = cam
+        return cam.connect(0)
+      })
+      .catch(console.error)
+  }
+
+  function takePhoto(size) {
+    const opts = {
+      width: 800,
+      height: 600,
+    }
+
+    if (size === 'small') {
+      opts.width = 400
+      opts.height = 300
+    }
+
+    cam.snapshot(opts)
+      .then(url => {
+        console.log('url len:' + url.length);
+        document.querySelector('img#snap').src = url;
+      });
+  }
+
+    &lt;/script>
+    </pre>
+  </div>
+
+  <script src="require.min.js" data-main="main"></script>
+  <script>
+  function init(rxcam) {
+    const options = {
+      config: {
+        ctx: document.querySelector('#my_camera'),
+        width: 800,
+        height: 600,
+        previewWidth: 400,
+        previewHeight: 300,
+      },
+    }
+
+    rxcam.init(options)
+      .then(cam => {
+        window.cam = cam
+        return cam.connect(0)
+      })
+      .catch(console.error)
+  }
+
+  function takePhoto(size) {
+    const opts = {
+      width: 800,
+      height: 600,
+    }
+
+    if (size === 'small') {
+      opts.width = 400
+      opts.height = 300
+    }
+
+    cam.snapshot(opts)
+      .then(url => {
+        console.log('url len:' + url.length);
+        document.querySelector('img#snap').src = url;
+      });
+  }
+
+  </script>
+
+</body>
+</html>
