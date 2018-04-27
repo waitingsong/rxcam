@@ -18,6 +18,8 @@ import {
 } from './lib/model'
 import { initUI } from './lib/ui'
 
+export * from './lib/model'
+
 
 export class Webcam {
   curDeviceIdx: VideoIdx
