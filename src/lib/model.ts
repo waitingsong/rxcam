@@ -63,3 +63,8 @@ export interface ImgOpts {
   imageFormat: ImgFormat
   jpegQuality: number // 0-100 for output
 }
+
+export interface ImgCaptureRet {
+  url: string // DataURL or ObjectURL
+  options: SnapOpts
+}

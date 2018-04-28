@@ -10,6 +10,7 @@ import { switchVideoByDeviceId, takePhoto, takeThumbnail, unattachStream } from 
 import {
   DeviceId,
   DeviceLabelOrder,
+  ImgCaptureRet,
   ImgOpts,
   InitialOpts,
   SnapOpts,
@@ -89,9 +90,9 @@ export class RxCam {
   }
 
 
-  snapshot(snapOpts?: Partial<SnapOpts>) {
+  snapshot(snapOpts?: Partial<SnapOpts>): Promise<ImgCaptureRet> {
     const [width, height] = this.genStreamResolution(this.curStreamIdx)
-    const sopts = snapOpts
+    const sopts: SnapOpts = snapOpts
       ? { ...this.snapOpts, width, height, ...snapOpts }
       : { ...this.snapOpts, width, height }
     const { snapDelay } = sopts
@@ -101,7 +102,7 @@ export class RxCam {
         setTimeout(() => {
           takePhoto(this.video, sopts)
             .then(url => {
-              resolve(url)
+              resolve({ url, options: sopts })
             })
             .catch(reject)
         }, snapDelay)
@@ -113,7 +114,7 @@ export class RxCam {
       return takePhoto(this.video, sopts)
         .then(url => {
           this.playVideo()
-          return url
+          return { url, options: sopts }
         })
         .catch(err => {
           this.playVideo()
