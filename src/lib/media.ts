@@ -185,7 +185,7 @@ export function calcRotationParams(width: number, height: number, rotate: number
   let angular = rotate % 360
 
   if (angular === 0) {
-    return {w, h, angular}
+    return { w, h, angular }
   }
   if (angular < 0) {
     angular = angular + 360
