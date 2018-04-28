@@ -80,16 +80,17 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
     const cvs2 = document.createElement('canvas')
     const { w, h, angular } = calcRotationParams(cvs.width, cvs.height, sopts.rotate)
 
+    ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
     if (angular !== 0) {
       cvs2.width = w
       cvs2.height = h
 
-      ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
       drawRotated(cvs2, cvs, angular)    // rotate image
       cvs.width = cvs.height = 0
 
       return exportFromCanvas(cvs2, sopts)
     }
+
     return exportFromCanvas(cvs, sopts)
   }
   else {
