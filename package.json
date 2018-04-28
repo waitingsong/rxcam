@@ -10,7 +10,7 @@
     "getUserMedia",
     "mediaDevices"
   ],
-  "browser": "./dist/rxcam.js",
+  "browser": "./dist/rxcam.esm.js",
   "es2015": "./dist/rxcam.esm.js",
   "main": "./dist/index.umd.js",
   "module": "./dist/index.js",
