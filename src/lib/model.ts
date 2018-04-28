@@ -50,6 +50,7 @@ export interface SnapOpts {
   width: number
   height: number
   jpegQuality: number
+  rotate: number  // angular
   streamIdx: StreamIdx
   snapDelay: number
   switchDelay: number

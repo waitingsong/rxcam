@@ -33,6 +33,7 @@ export const initialSnapOpts: SnapOpts = {
   width: 600,
   height: 400,
   jpegQuality: 97,
+  rotate: 0,
   streamIdx: 0,
   snapDelay: 0,
   switchDelay: 0,

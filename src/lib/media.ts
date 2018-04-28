@@ -77,8 +77,19 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
   }
 
   if (video) {
-    ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
+    const cvs2 = document.createElement('canvas')
+    const { w, h, angular } = calcRotationParams(cvs.width, cvs.height, sopts.rotate)
 
+    if (angular !== 0) {
+      cvs2.width = w
+      cvs2.height = h
+
+      ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
+      drawRotated(cvs2, cvs, angular)    // rotate image
+      cvs.width = cvs.height = 0
+
+      return exportFromCanvas(cvs2, sopts)
+    }
     return exportFromCanvas(cvs, sopts)
   }
   else {
@@ -138,4 +149,57 @@ export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Prom
         assertNever(options.dataType)
     }
   })
+}
+
+
+function drawRotated(cvs: HTMLCanvasElement, image: HTMLCanvasElement | HTMLImageElement, degrees: number): void {
+  const ctx = cvs.getContext('2d')
+
+  if (!ctx) {
+    throw new Error('canvas context invalud')
+  }
+
+  ctx.clearRect(0, 0, cvs.width, cvs.height)
+
+  // save the unrotated context of the canvas so we can restore it later
+  // the alternative is to untranslate & unrotate after drawing
+  ctx.save()
+
+  // move to the center of the canvas
+  ctx.translate(cvs.width / 2, cvs.height / 2)
+
+  // rotate the canvas to the specified degrees
+  ctx.rotate(degrees * Math.PI / 180)
+
+  // draw the image
+  // since the context is rotated, the image will be rotated also
+  ctx.drawImage(image, -image.width / 2, -image.height / 2)
+
+  // we’re done with the rotating so restore the unrotated context
+  ctx.restore()
+}
+
+export function calcRotationParams(width: number, height: number, rotate: number) {
+  let w = +width
+  let h = +height
+  let angular = rotate % 360
+
+  if (angular === 0) {
+    return {w, h, angular}
+  }
+  if (angular < 0) {
+    angular = angular + 360
+  }
+  const ratio = angular / 45
+
+  if (ratio >= 1 && ratio < 3) {
+    w = height
+    h = width
+  }
+  else if (ratio >= 5 && ratio < 7) {
+    w = height
+    h = width
+  }
+
+  return { w, h, angular }
 }
