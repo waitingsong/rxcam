@@ -97,6 +97,10 @@ export class RxCam {
       : { ...this.snapOpts, width, height }
     const { snapDelay } = sopts
 
+    if (typeof sopts.rotate === 'undefined') {
+      sopts.rotate = this.getStreamConfigRotate(this.curStreamIdx)
+    }
+
     if (snapDelay > 0) {
       return new Promise((resolve, reject) => {
         setTimeout(() => {
@@ -133,8 +137,8 @@ export class RxCam {
     const ret = <MediaDeviceInfo[]> []
 
     for (let deviceId of this.deviceIdOrder) {
-      // avoid to change to const during auto save fix. got error with other pkg rollup min output 
-      deviceId += '' 
+      // avoid to change to const during auto save fix. got error with other pkg rollup min output
+      deviceId += ''
       const info = getMediaDeviceInfo(deviceId)
 
       info && ret.push(info)
@@ -148,6 +152,14 @@ export class RxCam {
   }
 
 
+  // get rotate value of streamConfig by sidx if defined
+  getStreamConfigRotate(sidx: StreamIdx): number {
+    const rotate = this.streamConfigs[sidx]
+
+    return rotate ? +rotate : 0
+  }
+
+
   // for switchVideo
   private genStreamResolution(sidx: StreamIdx): [number, number] {
     const sconfig = this.streamConfigs[sidx]
@@ -158,7 +170,10 @@ export class RxCam {
 
     return [this.vconfig.width, this.vconfig.width]
   }
-}
+
+
+} // end of class
+
 
 export async function init(initialOpts: InitialOpts): Promise<RxCam> {
   const { config , ctx, deviceLabelOrder, snapOpts, streamConfigs } = initialOpts

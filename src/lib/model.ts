@@ -41,6 +41,7 @@ export interface StreamConfig {
   streamIdx: StreamIdx
   width: number
   height: number
+  rotate?: number // override by SnapOpt.rotate
 }
 
 export interface SnapOpts {
