@@ -99,23 +99,34 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
 }
 
 // take image thumbnail, output format jpeg
-export function takeThumbnail(imgURL: string, options?: Partial<ImgOpts>): Promise<string> {
+export function takeThumbnail(image: string | HTMLImageElement, options?: Partial<ImgOpts>): Promise<string> {
   const opts: ImgOpts = options ? { ...inititalThumbnailOpts, ...options } : inititalThumbnailOpts
   const cvs = genCanvas(opts.width, opts.height)
   const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
-  const img = document.createElement('img')
 
-  return new Promise((resolve, reject) => {
-    img.src = imgURL
-    img.onload = ev => {
-      ctx.drawImage(<HTMLImageElement> ev.target, 0, 0, opts.width, opts.height)
+  if (typeof image === 'string') {
+    const img = document.createElement('img')
 
-      return exportFromCanvas(cvs, opts)
-        .then(resolve)
-        .catch(reject)
-    }
-    img.onerror = err => reject(err)
-  })
+    return new Promise((resolve, reject) => {
+      img.src = image
+      img.onload = ev => {
+        ctx.drawImage(<HTMLImageElement> ev.target, 0, 0, opts.width, opts.height)
+
+        return exportFromCanvas(cvs, opts)
+          .then(resolve)
+          .catch(reject)
+      }
+      img.onerror = err => reject(err)
+    })
+  }
+  else if (typeof image === 'object' && typeof image.width !== 'undefined') {
+    ctx.drawImage(<HTMLImageElement> image, 0, 0, opts.width, opts.height)
+
+    return exportFromCanvas(cvs, opts)
+  }
+  else {
+    return Promise.reject('invalid image param')
+  }
 }
 
 export function genCanvas(width: number, height: number): HTMLCanvasElement {
