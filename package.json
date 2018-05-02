@@ -1,7 +1,7 @@
 {
   "name": "rxcam",
   "author": "waiting",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Reactive webcam ECMAScript",
   "keywords": [
     "camera",
