@@ -12,7 +12,7 @@
   ],
   "browser": "./dist/rxcam.esm.js",
   "es2015": "./dist/rxcam.esm.js",
-  "main": "./dist/index.umd.js",
+  "main": "./dist/index.cjs.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bugs": {
@@ -46,7 +46,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/mocha": "^5.0.0",
-    "@types/node": "^9.6.4",
+    "@types/node": "^10.0.0",
     "@types/power-assert": "^1.5.0",
     "@types/rewire": "^2.5.28",
     "@types/rimraf": "^2.0.2",
