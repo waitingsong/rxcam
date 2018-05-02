@@ -6,7 +6,14 @@ import {
   invokePermission,
   parseDeviceIdOrder,
 } from './lib/device'
-import { switchVideoByDeviceId, takePhoto, takeThumbnail, unattachStream } from './lib/media'
+import {
+  exportFromCanvas,
+  genCanvas,
+  switchVideoByDeviceId,
+  takePhoto,
+  takeThumbnail,
+  unattachStream,
+} from './lib/media'
 import {
   DeviceId,
   DeviceLabelOrder,
@@ -21,6 +28,7 @@ import {
 import { calcVideoMaxResolution, initUI } from './lib/ui'
 
 export * from './lib/model'
+export { exportFromCanvas, genCanvas, takeThumbnail }
 
 
 export class RxCam {
