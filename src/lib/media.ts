@@ -215,3 +215,32 @@ export function calcRotationParams(width: number, height: number, rotate: number
 
   return { w, h, angular }
 }
+
+// calclate image resize width/height
+export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxPixel: number = 1600) {
+  const ret: Partial<ImgOpts> = {
+    width: +imgWidth,
+    height: +imgHeight,
+  }
+
+  if (! maxPixel) {
+    return ret
+  }
+  else {
+    if (imgWidth <= maxPixel && imgHeight <= maxPixel) {
+      return ret
+    }
+    const ratio = imgWidth / imgHeight
+
+    if (ratio >= 1) {
+      ret.width = maxPixel
+      ret.height = maxPixel / ratio
+    }
+    else {
+      ret.width = maxPixel * ratio
+      ret.height = maxPixel
+    }
+  }
+
+  return ret
+}
