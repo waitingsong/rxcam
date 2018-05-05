@@ -19,9 +19,7 @@ export function switchVideoByDeviceId(
   width: number,
   height: number): Promise<void> {
 
-  const device = getMediaDeviceByDeviceId(deviceId)
-
-  if (! device) {
+  if (! getMediaDeviceByDeviceId(deviceId)) {
     return Promise.reject(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
   }
   const vOpts = <MediaTrackConstraints> {
@@ -51,9 +49,7 @@ export function switchVideoByDeviceId(
 function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
     if (stream && video) {
-      video.onloadeddata = ev => {
-        resolve()
-      }
+      video.onloadeddata = ev => resolve()
       video.srcObject = stream
     }
     else {
