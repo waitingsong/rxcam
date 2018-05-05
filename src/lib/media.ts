@@ -21,8 +21,8 @@ export function switchVideoByDeviceId(
 
   const device = getMediaDeviceByDeviceId(deviceId)
 
-  if (!device) {
-    return Promise.reject('getDeivceByIdx empty')
+  if (! device) {
+    return Promise.reject(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
   }
   const vOpts = <MediaTrackConstraints> {
     width: {
