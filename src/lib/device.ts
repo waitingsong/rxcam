@@ -19,7 +19,7 @@ export function invokePermission(): Promise<void> {
     new Promise<void>((resolve, reject) => {
       time = setTimeout(() => {
         reject('findDevice timeout')
-      }, 30000) // @HARDCODED
+      }, 10000) // @HARDCODED
     }),
 
     mediaDevices.getUserMedia({
