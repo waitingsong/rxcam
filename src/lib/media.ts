@@ -17,7 +17,7 @@ export function switchVideoByDeviceId(
   deviceId: DeviceId,
   video: HTMLVideoElement,
   width: number,
-  height: number): Promise<void> {
+  height: number): Promise<MediaStreamConstraints> {
 
   if (! getMediaDeviceByDeviceId(deviceId)) {
     return Promise.reject(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
@@ -33,14 +33,16 @@ export function switchVideoByDeviceId(
     },
     deviceId: { exact: deviceId },
   }
-
-  return mediaDevices.getUserMedia({
+  const constrains: MediaStreamConstraints = {
     audio: false,
     video: vOpts,
-  })
+  }
+
+  return mediaDevices.getUserMedia(constrains)
     .then(stream => {
       if (stream && video) {
         return attachStream(stream, video)
+          .then(() => constrains)
       }
       else {
         return Promise.reject('vedio or stream blank during switch camera')

@@ -43,14 +43,15 @@ export class RxCam {
   private deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
 
-  connect(streamIdx?: StreamIdx) {
+  connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
     const [width, height] = this.genStreamResolution(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, width, height)
-      .then(() => {
+      .then(constraints => {
         this.curStreamIdx = sidx
+        return constraints
       })
   }
 
@@ -63,8 +64,9 @@ export class RxCam {
       const [width, height] = this.genStreamResolution(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
-        .then(() => {
+        .then(constraints => {
           this.curStreamIdx = sidx
+          return constraints
         })
     }
     else {
