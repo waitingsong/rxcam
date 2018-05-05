@@ -24,6 +24,7 @@ export const initialVideoConfig: VideoConfig = {
   deviceLabelOrder: [],
   previewWidth: 0,
   previewHeight: 0,
+  retryRatio: 0.6,
 }
 
 export const initialSnapOpts: SnapOpts = {

@@ -53,10 +53,21 @@ export class RxCam {
         this.curStreamIdx = sidx
         return constraints
       })
+      .catch(err => {
+        if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
+          return switchVideoByDeviceId(
+            deviceId,
+            this.video,
+            width * this.vconfig.retryRatio,
+            height * this.vconfig.retryRatio
+          )
+        }
+        throw err
+      })
   }
 
 
-  connectNext() {
+  connectNext(): Promise<MediaStreamConstraints> {
     const sidx = getNextVideoIdx(this.curStreamIdx)
 
     if (typeof sidx === 'number') {
@@ -67,6 +78,17 @@ export class RxCam {
         .then(constraints => {
           this.curStreamIdx = sidx
           return constraints
+        })
+        .catch(err => {
+          if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
+            return switchVideoByDeviceId(
+              deviceId,
+              this.video,
+              width * this.vconfig.retryRatio,
+              height * this.vconfig.retryRatio
+            )
+          }
+          throw err
         })
     }
     else {

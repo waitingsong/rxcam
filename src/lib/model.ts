@@ -35,6 +35,7 @@ export interface VideoConfig {
   deviceLabelOrder: Array<string | RegExp>
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
+  retryRatio?: number // retry lower width/height constraints if connect() fail
 }
 
 export interface StreamConfig {
