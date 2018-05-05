@@ -34,7 +34,7 @@ export class RxCam {
     public snapOpts: SnapOpts,
     public video: HTMLVideoElement,
     public deviceLabelOrder: DeviceLabelOrder,
-    public streamConfigs: StreamConfig[]
+    public streamConfigs: StreamConfig[],
   ) {
     this.curStreamIdx = 0
     this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
@@ -59,7 +59,7 @@ export class RxCam {
             deviceId,
             this.video,
             width * this.vconfig.retryRatio,
-            height * this.vconfig.retryRatio
+            height * this.vconfig.retryRatio,
           )
         }
         throw err
@@ -85,7 +85,7 @@ export class RxCam {
               deviceId,
               this.video,
               width * this.vconfig.retryRatio,
-              height * this.vconfig.retryRatio
+              height * this.vconfig.retryRatio,
             )
           }
           throw err
