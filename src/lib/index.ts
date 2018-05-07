@@ -223,20 +223,15 @@ export async function init(initialOpts: InitialOpts): Promise<RxCam> {
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
-  await resetDeviceInfo()
-
-  return new RxCam(vconfig2, sopts, video, labels, sconfigs)
+  return resetDeviceInfo()
+    .then(() => new RxCam(vconfig2, sopts, video, labels, sconfigs))
 }
 
-export async function resetDeviceInfo(): Promise<void> {
-  try {
-    // resetDeviceMap()
-    await invokePermission()
-    await findDevices()
-  }
-  catch (ex) {
-    console.info(ex)
-  }
+export function resetDeviceInfo(): Promise<void> {
+  // resetDeviceMap()
+  return invokePermission()
+    .then(findDevices)
+    .catch(console.info)
 }
 
 function validateStreamConfigs(configs?: StreamConfig[]): void {
