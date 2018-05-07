@@ -96,6 +96,9 @@ export class RxCam {
     }
   }
 
+  isPlaying(): boolean {
+    return this.video && this.video.played.length ? true : false
+  }
 
   getDeviceIdFromDeviceOrder(sidx: StreamIdx): DeviceId {
     return this.deviceIdOrder[sidx]
