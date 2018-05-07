@@ -1,7 +1,7 @@
 require.config({
   baseUrl: '../dist',
   paths:   {
-    'rxcam': 'index.umd.min',
+    'rxcam': 'rxcam.umd.min',
   },
 });
 
