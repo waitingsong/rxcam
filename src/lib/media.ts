@@ -63,6 +63,8 @@ function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<voi
 }
 
 export function unattachStream(video: HTMLVideoElement) {
+  video.pause()
+  stopMediaTracks(<MediaStream> video.srcObject)
   video.srcObject = null
 }
 
@@ -243,4 +245,10 @@ export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxP
   }
 
   return ret
+}
+
+
+export function stopMediaTracks(stream: MediaStream) {
+  stream && stream.getTracks()
+    .forEach(track => track.stop && track.stop())
 }
