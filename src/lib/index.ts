@@ -55,12 +55,18 @@ export class RxCam {
       })
       .catch(err => {
         if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
+          console.info('retry connect. err:', err)
+
           return switchVideoByDeviceId(
             deviceId,
             this.video,
             width * this.vconfig.retryRatio,
             height * this.vconfig.retryRatio,
           )
+            .then(constraints => {
+              this.curStreamIdx = sidx
+              return constraints
+            })
         }
         throw err
       })
@@ -81,12 +87,18 @@ export class RxCam {
         })
         .catch(err => {
           if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
+            console.info('retry connect next. err:', err)
+
             return switchVideoByDeviceId(
               deviceId,
               this.video,
               width * this.vconfig.retryRatio,
               height * this.vconfig.retryRatio,
             )
+              .then(constraints => {
+                this.curStreamIdx = sidx
+                return constraints
+              })
           }
           throw err
         })
