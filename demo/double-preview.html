@@ -35,8 +35,8 @@
 
   function init(rxcam) {
     const options = {
+      ctx: document.querySelector('#my_camera_0'),
       config: {
-        ctx: document.querySelector('#my_camera_0'),
         width: 400,
         height: 300,
       },
@@ -48,7 +48,7 @@
       })
       .catch(console.error)
 
-    options.config.ctx = document.querySelector('#my_camera_1'),
+    options.ctx = document.querySelector('#my_camera_1'),
     rxcam.init(options)
       .then(cam => {
         return cam.connect(1)
@@ -65,8 +65,8 @@
   <script>
   function init(rxcam) {
     const options = {
+      ctx: document.querySelector('#my_camera_0'),
       config: {
-        ctx: document.querySelector('#my_camera_0'),
         width: 400,
         height: 300,
       },
@@ -78,7 +78,7 @@
       })
       .catch(console.error)
 
-    options.config.ctx = document.querySelector('#my_camera_1'),
+    options.ctx = document.querySelector('#my_camera_1'),
     rxcam.init(options)
       .then(cam => {
         return cam.connect(1)
