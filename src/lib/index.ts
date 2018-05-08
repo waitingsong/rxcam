@@ -14,7 +14,6 @@ import {
 } from './media'
 import {
   DeviceId,
-  DeviceLabelOrder,
   ImgCaptureRet,
   ImgOpts,
   InitialOpts,
