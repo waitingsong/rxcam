@@ -184,6 +184,11 @@ export function resetDeviceMap() {
 }
 
 export function stopMediaTracks(stream: MediaStream) {
-  stream && stream.getTracks()
-    .forEach(track => track.stop && track.stop())
+  try {
+    stream && stream.getTracks()
+      .forEach(track => track.stop && track.stop())
+  }
+  catch (ex) {
+    console.info(ex)
+  }
 }
