@@ -55,13 +55,15 @@ export class RxCam {
       })
       .catch(err => {
         if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-          console.info('retry connect. err:', err)
+          const width2 = width * this.vconfig.retryRatio
+          const height2 = height * this.vconfig.retryRatio
+          console.info(`retry connect. width/height: ${width}/${height}. width2/height2: ${width2}/${height2}.`, err)
 
           return switchVideoByDeviceId(
             deviceId,
             this.video,
-            width * this.vconfig.retryRatio,
-            height * this.vconfig.retryRatio,
+            width2,
+            height2,
           )
             .then(constraints => {
               this.curStreamIdx = sidx
