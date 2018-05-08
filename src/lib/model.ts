@@ -1,8 +1,8 @@
 export type CamIdx = number // index of multi cameras
 export type CamSym = symbol
 export type DeviceId = string
-export type DeviceLabel = string | RegExp
-export type DeviceLabelOrder = DeviceLabel[]
+export type MatchLabel = string | RegExp
+export type DeviceLabelOrder = MatchLabel[]
 export type Guid = number
 export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
 export type ImgFormat = 'jpeg' | 'png'
@@ -15,7 +15,6 @@ export interface InitialOpts {
   ctx: HTMLElement
   debug?: boolean
   snapOpts?: SnapOpts
-  deviceLabelOrder?: DeviceLabelOrder
   streamConfigs?: StreamConfig[]
 }
 
@@ -32,16 +31,15 @@ export interface VideoConfig {
   fps: number
   width: number   // maybe override by max of StreamConfig['width]
   height: number  // maybe override by max of StreamConfig['height']
-  deviceLabelOrder: Array<string | RegExp>
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
   retryRatio?: number // retry lower width/height constraints if connect() fail
 }
 
 export interface StreamConfig {
-  streamIdx: StreamIdx
   width: number
   height: number
+  matchLabels?: MatchLabel[]
   rotate?: number // override by SnapOpt.rotate
 }
 

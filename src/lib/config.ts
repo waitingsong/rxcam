@@ -21,7 +21,6 @@ export const initialVideoConfig: VideoConfig = {
   fps: 30,
   width: 400,
   height: 300,
-  deviceLabelOrder: [],
   previewWidth: 0,
   previewHeight: 0,
   retryRatio: 0.6,

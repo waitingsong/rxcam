@@ -4,7 +4,7 @@ import {
   getMediaDeviceInfo,
   getNextVideoIdx,
   invokePermission,
-  parseDeviceIdOrder,
+  parseMediaOrder,
 } from './device'
 import {
   switchVideoByDeviceId,
@@ -28,19 +28,17 @@ import { calcVideoMaxResolution, initUI } from './ui'
 
 export class RxCam {
   curStreamIdx: StreamIdx
+  deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
   constructor(
     public vconfig: VideoConfig,
     public snapOpts: SnapOpts,
     public video: HTMLVideoElement,
-    public deviceLabelOrder: DeviceLabelOrder,
     public streamConfigs: StreamConfig[],
   ) {
     this.curStreamIdx = 0
-    this.deviceIdOrder = parseDeviceIdOrder(deviceLabelOrder)
+    this.deviceIdOrder = parseMediaOrder(this.streamConfigs)
   }
-
-  private deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
 
 
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
@@ -218,7 +216,7 @@ export class RxCam {
 
 
 export async function init(initialOpts: InitialOpts): Promise<RxCam> {
-  const { config , ctx, deviceLabelOrder, snapOpts, streamConfigs } = initialOpts
+  const { config , ctx, snapOpts, streamConfigs } = initialOpts
   const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
 
   validateStreamConfigs(streamConfigs)
@@ -233,13 +231,12 @@ export async function init(initialOpts: InitialOpts): Promise<RxCam> {
   }
 
   const [vconfig2, video] = initUI(ctx, vconfig)
-  const labels = deviceLabelOrder && Array.isArray(deviceLabelOrder) ? deviceLabelOrder : []
   const sopts: SnapOpts = snapOpts
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
   return resetDeviceInfo()
-    .then(() => new RxCam(vconfig2, sopts, video, labels, sconfigs))
+    .then(() => new RxCam(vconfig2, sopts, video, sconfigs))
 }
 
 export function resetDeviceInfo(): Promise<void> {
@@ -262,9 +259,6 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
 
   for (const config of configs) {
     if (!config) {
-      throw new Error('At least one of deviceId, label, streamIdx should has valid value')
-    }
-    else if (typeof config.streamIdx !== 'number') {
       throw new Error('At least one of deviceId, label, streamIdx should has valid value')
     }
   }

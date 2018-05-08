@@ -5,8 +5,9 @@ import {
 } from './config'
 import {
   DeviceId,
-  DeviceLabel,
   DeviceLabelOrder,
+  MatchLabel,
+  StreamConfig,
   StreamIdx,
 } from './model'
 import { assertNever } from './shared'
@@ -99,14 +100,21 @@ export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
   return ids[ids.indexOf(curVideoIdx) + 1]
 }
 
-// parse deivceId Array matched by value of deviceOrderByLabe
-export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId[] {
+
+export function parseMediaOrder(streamConfigs: StreamConfig[]): DeviceId[] {
   const ret: DeviceId[] = []
 
-  for (const label of deviceLabelOrder) {
-    const id = searchVideoMediaDeviceIdByLabel(label)
+  for (const sconfig of streamConfigs) {
+    const labels = sconfig.matchLabels
 
-    id && ret.push(id)
+    if (! labels || ! Array.isArray(labels)) {
+      continue
+    }
+    labels.forEach(label => {
+      const id = searchVideoMediaDeviceIdByLabel(label)
+
+      id && ret.push(id)
+    })
   }
 
   if (ret.length >= getVideoMediaDeviceSize()) {
@@ -122,7 +130,7 @@ export function parseDeviceIdOrder(deviceLabelOrder: DeviceLabelOrder): DeviceId
 }
 
 // string/regex match, case insensitive
-export function searchVideoMediaDeviceIdByLabel(label: DeviceLabel): DeviceId | void {
+export function searchVideoMediaDeviceIdByLabel(label: MatchLabel): DeviceId | void {
   if (!label) {
     return
   }
