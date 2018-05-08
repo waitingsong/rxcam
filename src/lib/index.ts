@@ -180,9 +180,7 @@ export class RxCam {
   getAllVideoInfo() {
     const ret = <MediaDeviceInfo[]> []
 
-    for (let deviceId of this.deviceIdOrder) {
-      // avoid to change to const during auto save fix. got error with other pkg rollup min output
-      deviceId += ''
+    for (const deviceId of this.deviceIdOrder) {
       const info = getMediaDeviceInfo(deviceId)
 
       info && ret.push(info)
