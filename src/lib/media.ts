@@ -1,9 +1,5 @@
-import {
-  inititalThumbnailOpts, mediaDevices,
-} from './config'
-import {
-  getMediaDeviceByDeviceId,
-} from './device'
+import { inititalThumbnailOpts, mediaDevices } from './config'
+import { getMediaDeviceByDeviceId, stopMediaTracks } from './device'
 import {
   DeviceId,
   ImgOpts,
@@ -247,8 +243,3 @@ export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxP
   return ret
 }
 
-
-export function stopMediaTracks(stream: MediaStream) {
-  stream && stream.getTracks()
-    .forEach(track => track.stop && track.stop())
-}

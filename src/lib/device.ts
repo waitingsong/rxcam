@@ -5,7 +5,6 @@ import {
 } from './config'
 import {
   DeviceId,
-  DeviceLabelOrder,
   MatchLabel,
   StreamConfig,
   StreamIdx,
@@ -28,7 +27,8 @@ export function invokePermission(): Promise<void> {
       video: true,
     }),
   ])
-    .then(() => {
+    .then(stream => {
+      stream && stopMediaTracks(stream)
       clearTimeout(time)
     })
     .catch(err => {
@@ -181,4 +181,9 @@ export function getVideoMediaDeviceSize(): number {
 export function resetDeviceMap() {
   videoIdxMap.clear()
   deviceMap.clear()
+}
+
+export function stopMediaTracks(stream: MediaStream) {
+  stream && stream.getTracks()
+    .forEach(track => track.stop && track.stop())
 }
