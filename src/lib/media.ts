@@ -20,12 +20,12 @@ export function switchVideoByDeviceId(
   }
   const vOpts = <MediaTrackConstraints> {
     width: {
-      ideal: width,
-      min: width * 0.8,
+      ideal: Math.floor(width),
+      min: Math.floor(width * 0.8),
     },
     height: {
-      ideal: height,
-      min: height * 0.8,
+      ideal: Math.floor(height),
+      min: Math.floor(height * 0.8),
     },
     deviceId: { exact: deviceId },
   }

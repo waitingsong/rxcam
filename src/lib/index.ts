@@ -53,8 +53,8 @@ export class RxCam {
       .catch(err => {
         if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
           const ratio = this.vconfig.retryRatio
-          const width2 = width * ratio
-          const height2 = height * ratio
+          const width2 = Math.floor(width * ratio)
+          const height2 = Math.floor(height * ratio)
           console.info(
             `retry connect. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
             err,
@@ -92,8 +92,8 @@ export class RxCam {
         .catch(err => {
           if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
             const ratio = this.vconfig.retryRatio
-            const width2 = width * ratio
-            const height2 = height * ratio
+            const width2 = Math.floor(width * ratio)
+            const height2 = Math.floor(height * ratio)
             console.info(
               `retry connectNext. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
               err,
