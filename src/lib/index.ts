@@ -258,7 +258,8 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
 
   for (const config of configs) {
     if (!config) {
-      throw new Error('At least one of deviceId, label, streamIdx should has valid value')
+      console.error(configs)
+      throw new Error('config blank, At least one of width, height should has valid value')
     }
   }
 }
