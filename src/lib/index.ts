@@ -219,7 +219,7 @@ export class RxCam {
       return [sconfig.width, sconfig.height]
     }
 
-    return [this.vconfig.width, this.vconfig.width]
+    return [this.vconfig.width, this.vconfig.height]
   }
 
 
