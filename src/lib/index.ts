@@ -64,6 +64,7 @@ export class RxCam {
           )
             .then(constraints => {
               this.curStreamIdx = sidx
+              this.updateStreamResolution(sidx, width2, height2)
               return constraints
             })
         }
@@ -86,16 +87,19 @@ export class RxCam {
         })
         .catch(err => {
           if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-            console.info('retry connect next. err:', err)
+            const width2 = width * this.vconfig.retryRatio
+            const height2 = height * this.vconfig.retryRatio
+            console.info(`retry connectNext. w/h: ${width}/${height}. width2/height2: ${width2}/${height2}.`, err)
 
             return switchVideoByDeviceId(
               deviceId,
               this.video,
-              width * this.vconfig.retryRatio,
-              height * this.vconfig.retryRatio,
+              width2,
+              height2,
             )
               .then(constraints => {
                 this.curStreamIdx = sidx
+                this.updateStreamResolution(sidx, width2, height2)
                 return constraints
               })
           }
@@ -208,6 +212,16 @@ export class RxCam {
     }
 
     return [this.vconfig.width, this.vconfig.width]
+  }
+
+
+  private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
+    const sconfig = this.streamConfigs[sidx]
+
+    if (sconfig) {
+      sconfig.width = +width
+      sconfig.height = +height
+    }
   }
 
 
