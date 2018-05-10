@@ -23,7 +23,7 @@ export const initialVideoConfig: VideoConfig = {
   height: 300,
   previewWidth: 0,
   previewHeight: 0,
-  retryRatio: 0.6,
+  retryRatio: 0.8,
 }
 
 export const initialSnapOpts: SnapOpts = {
