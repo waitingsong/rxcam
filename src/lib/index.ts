@@ -52,9 +52,13 @@ export class RxCam {
       })
       .catch(err => {
         if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-          const width2 = width * this.vconfig.retryRatio
-          const height2 = height * this.vconfig.retryRatio
-          console.info(`retry connect. width/height: ${width}/${height}. width2/height2: ${width2}/${height2}.`, err)
+          const ratio = this.vconfig.retryRatio
+          const width2 = width * ratio
+          const height2 = height * ratio
+          console.info(
+            `retry connect. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
+            err,
+          )
 
           return switchVideoByDeviceId(
             deviceId,
@@ -87,9 +91,13 @@ export class RxCam {
         })
         .catch(err => {
           if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-            const width2 = width * this.vconfig.retryRatio
-            const height2 = height * this.vconfig.retryRatio
-            console.info(`retry connectNext. w/h: ${width}/${height}. width2/height2: ${width2}/${height2}.`, err)
+            const ratio = this.vconfig.retryRatio
+            const width2 = width * ratio
+            const height2 = height * ratio
+            console.info(
+              `retry connectNext. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
+              err,
+            )
 
             return switchVideoByDeviceId(
               deviceId,
