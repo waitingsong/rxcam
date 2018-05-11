@@ -210,6 +210,9 @@ export class RxCam {
     return rotate ? +rotate : 0
   }
 
+  switchVideo(deviceId: DeviceId, width: number, height: number) {
+    return switchVideoByDeviceId(deviceId, this.video, width, height)
+  }
 
   // for switchVideo
   private genStreamResolution(sidx: StreamIdx): [number, number] {
