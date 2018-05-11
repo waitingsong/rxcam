@@ -237,7 +237,7 @@ export class RxCam {
 
 
 export async function init(initialOpts: InitialOpts): Promise<RxCam> {
-  const { config , ctx, snapOpts, streamConfigs } = initialOpts
+  const { config , ctx, skipInvokePermission, snapOpts, streamConfigs } = initialOpts
   const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
 
   validateStreamConfigs(streamConfigs)
@@ -256,12 +256,16 @@ export async function init(initialOpts: InitialOpts): Promise<RxCam> {
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
-  return resetDeviceInfo()
+  return resetDeviceInfo(skipInvokePermission)
     .then(() => new RxCam(vconfig2, sopts, video, sconfigs))
 }
 
-export function resetDeviceInfo(): Promise<void> {
+export function resetDeviceInfo(skipInvokePermission: boolean): Promise<void> {
   // resetDeviceMap()
+  if (skipInvokePermission) {
+    return findDevices()
+      .catch(console.info)
+  }
   return invokePermission()
     .then(findDevices)
     .catch(console.info)

@@ -16,6 +16,7 @@ export interface InitialOpts {
   debug?: boolean
   snapOpts?: SnapOpts
   streamConfigs?: StreamConfig[]
+  skipInvokePermission?: boolean
 }
 
 export interface RxEvent {
