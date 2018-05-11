@@ -45,6 +45,13 @@ export class RxCam {
     const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
     const [width, height] = this.genStreamResolution(sidx)
 
+    try {
+      this.disconnect()
+    }
+    catch (ex) {
+      console.info(ex)
+    }
+
     return switchVideoByDeviceId(deviceId, this.video, width, height)
       .then(constraints => {
         this.curStreamIdx = sidx
@@ -83,6 +90,13 @@ export class RxCam {
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
       const [width, height] = this.genStreamResolution(sidx)
+
+      try {
+        this.disconnect()
+      }
+      catch (ex) {
+        console.info(ex)
+      }
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
         .then(constraints => {
@@ -263,7 +277,7 @@ export async function init(initialOpts: InitialOpts): Promise<RxCam> {
     .then(() => new RxCam(vconfig2, sopts, video, sconfigs))
 }
 
-export function resetDeviceInfo(skipInvokePermission: boolean): Promise<void> {
+export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
   // resetDeviceMap()
   if (skipInvokePermission) {
     return findDevices()
