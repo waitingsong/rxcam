@@ -59,7 +59,7 @@ function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<voi
 }
 
 export function unattachStream(video: HTMLVideoElement) {
-  video.pause()
+  video.pause && video.pause()
   stopMediaTracks(<MediaStream> video.srcObject)
   video.srcObject = null
 }
