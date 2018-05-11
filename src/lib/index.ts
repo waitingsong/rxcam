@@ -45,41 +45,21 @@ export class RxCam {
     const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
     const [width, height] = this.genStreamResolution(sidx)
 
-    try {
-      this.disconnect()
-    }
-    catch (ex) {
-      console.info(ex)
-    }
-
     return switchVideoByDeviceId(deviceId, this.video, width, height)
       .then(constraints => {
         this.curStreamIdx = sidx
         return constraints
       })
-      .catch(err => {
-        if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-          const ratio = this.vconfig.retryRatio
-          const width2 = Math.floor(width * ratio)
-          const height2 = Math.floor(height * ratio)
-          console.info(
-            `retry connect. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
-            err,
-          )
+      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+      .then(constraints => {
+        const vOpts = <MediaTrackConstraints> constraints.video
+        const w = <number> (<ConstrainLongRange> vOpts.width).ideal
+        const h = <number> (<ConstrainLongRange> vOpts.height).ideal
 
-          return switchVideoByDeviceId(
-            deviceId,
-            this.video,
-            width2,
-            height2,
-          )
-            .then(constraints => {
-              this.curStreamIdx = sidx
-              this.updateStreamResolution(sidx, width2, height2)
-              return constraints
-            })
-        }
-        throw err
+        this.curStreamIdx = sidx
+        this.updateStreamResolution(sidx, +w, +h)
+        return constraints
       })
   }
 
@@ -91,41 +71,21 @@ export class RxCam {
       const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
       const [width, height] = this.genStreamResolution(sidx)
 
-      try {
-        this.disconnect()
-      }
-      catch (ex) {
-        console.info(ex)
-      }
-
       return switchVideoByDeviceId(deviceId, this.video, width, height)
         .then(constraints => {
           this.curStreamIdx = sidx
           return constraints
         })
-        .catch(err => {
-          if (typeof err === 'object' && this.vconfig.retryRatio) {  // retry lower resolution
-            const ratio = this.vconfig.retryRatio
-            const width2 = Math.floor(width * ratio)
-            const height2 = Math.floor(height * ratio)
-            console.info(
-              `retry connectNext. width/height: ${width}/${height}. ratio: "${ratio}" to: ${width2}/${height2}.`,
-              err,
-            )
+        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+        .then(constraints => {
+          const vOpts = <MediaTrackConstraints> constraints.video
+          const w = <number> (<ConstrainLongRange> vOpts.width).ideal
+          const h = <number> (<ConstrainLongRange> vOpts.height).ideal
 
-            return switchVideoByDeviceId(
-              deviceId,
-              this.video,
-              width2,
-              height2,
-            )
-              .then(constraints => {
-                this.curStreamIdx = sidx
-                this.updateStreamResolution(sidx, width2, height2)
-                return constraints
-              })
-          }
-          throw err
+          this.curStreamIdx = sidx
+          this.updateStreamResolution(sidx, +w, +h)
+          return constraints
         })
     }
     else {
@@ -249,6 +209,53 @@ export class RxCam {
     }
   }
 
+  // retry connect for specify type of error
+  private retryConnect(
+    err: Error,
+    deviceId: DeviceId,
+    sidx: StreamIdx,
+    width: number,
+    height: number,
+  ): Promise<MediaStreamConstraints> {
+
+    // [FF, Chrome]
+    if (['OverconstrainedError', 'ConstraintNotSatisfiedError'].includes(err.name)) {
+      if (typeof this.vconfig.retryRatio === 'number' && this.vconfig.retryRatio > 0) {
+        const ratio = this.vconfig.retryRatio
+        const width2 = Math.floor(width * ratio)
+        const height2 = Math.floor(height * ratio)
+
+        console.info(
+          `retry connect(${sidx}). width/height: ${width}/${height}. ratio: ${ratio} to: ${width2}/${height2}.`,
+          err,
+        )
+
+        return switchVideoByDeviceId(
+          deviceId,
+          this.video,
+          width2,
+          height2,
+        )
+      }
+    }
+    else if (['NotReadableError', 'TrackStartError'].includes(err.name)) {
+      try {
+        this.disconnect()
+      }
+      catch (ex) {
+        console.info(ex)
+      }
+
+      return switchVideoByDeviceId(
+        deviceId,
+        this.video,
+        width,
+        height,
+      )
+    }
+
+    throw err
+  }
 
 } // end of class
 
