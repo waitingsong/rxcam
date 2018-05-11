@@ -32,6 +32,8 @@ export interface VideoConfig {
   fps: number
   width: number   // maybe override by max of StreamConfig['width]
   height: number  // maybe override by max of StreamConfig['height']
+  minWidth?: number,  // for retry connect, override by value of StreamConfig.minWidth
+  minHeight?: number, // for retry connect, override by value of StreamConfig.minHeight
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
   retryRatio?: number // retry lower width/height constraints if connect() fail
@@ -41,7 +43,16 @@ export interface StreamConfig {
   width: number
   height: number
   matchLabels?: MatchLabel[]
+  minWidth?: number,  // for retry connect
+  minHeight?: number, // for retry connect
   rotate?: number // override by SnapOpt.rotate
+}
+
+export interface VideoResolutionConfig {
+  width: number
+  height: number
+  minWidth: number
+  minHeight: number
 }
 
 export interface SnapOpts {

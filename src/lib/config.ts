@@ -19,8 +19,10 @@ export const videoIdxMap = new Map<StreamIdx, DeviceId>()
 export const initialVideoConfig: VideoConfig = {
   flipHoriz: false,
   fps: 30,
-  width: 400,
-  height: 300,
+  width: 800,
+  height: 600,
+  minWidth: 640,  // for retry connect
+  minHeight: 480, // for retry connect
   previewWidth: 0,
   previewHeight: 0,
   retryRatio: 0.8,

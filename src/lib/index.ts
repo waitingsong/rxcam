@@ -21,6 +21,7 @@ import {
   StreamConfig,
   StreamIdx,
   VideoConfig,
+  VideoResolutionConfig,
 } from './model'
 import { calcVideoMaxResolution, initUI } from './ui'
 
@@ -43,7 +44,7 @@ export class RxCam {
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
-    const [width, height] = this.genStreamResolution(sidx)
+    const { width, height } = this.genStreamResolution(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, width, height)
       .then(constraints => {
@@ -69,7 +70,7 @@ export class RxCam {
 
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
-      const [width, height] = this.genStreamResolution(sidx)
+      const { width, height } = this.genStreamResolution(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
         .then(constraints => {
@@ -118,7 +119,7 @@ export class RxCam {
 
 
   snapshot(snapOpts?: Partial<SnapOpts>): Promise<ImgCaptureRet> {
-    const [width, height] = this.genStreamResolution(this.curStreamIdx)
+    const { width, height } = this.genStreamResolution(this.curStreamIdx)
     const sopts: SnapOpts = snapOpts
       ? { ...this.snapOpts, width, height, ...snapOpts }
       : { ...this.snapOpts, width, height }
@@ -189,14 +190,33 @@ export class RxCam {
   }
 
   // for switchVideo
-  private genStreamResolution(sidx: StreamIdx): [number, number] {
+  private genStreamResolution(sidx: StreamIdx): VideoResolutionConfig {
     const sconfig = this.streamConfigs[sidx]
-
-    if (sconfig && sconfig.width) {
-      return [sconfig.width, sconfig.height]
+    const vconfig = this.vconfig
+    const ret: VideoResolutionConfig = {
+      width: vconfig.width,
+      height: vconfig.height,
+      minWidth: vconfig.minWidth ? vconfig.minWidth : vconfig.width,
+      minHeight: vconfig.minHeight ? vconfig.minHeight : vconfig.height,
     }
 
-    return [this.vconfig.width, this.vconfig.height]
+    if (sconfig) {
+      if (sconfig.width) {
+        ret.width = sconfig.width
+        ret.height = sconfig.height
+      }
+      if (sconfig.minWidth) {
+        ret.minWidth = sconfig.minWidth
+        ret.minHeight = <number> sconfig.minHeight
+      }
+    }
+
+    if (ret.minWidth > ret.width) {
+      ret.minWidth = ret.width
+      ret.minHeight = ret.height
+    }
+
+    return ret
   }
 
 
@@ -221,21 +241,10 @@ export class RxCam {
     // [FF, Chrome]
     if (['OverconstrainedError', 'ConstraintNotSatisfiedError'].includes(err.name)) {
       if (typeof this.vconfig.retryRatio === 'number' && this.vconfig.retryRatio > 0) {
-        const ratio = this.vconfig.retryRatio
-        const width2 = Math.floor(width * ratio)
-        const height2 = Math.floor(height * ratio)
-
-        console.info(
-          `retry connect(${sidx}). width/height: ${width}/${height}. ratio: ${ratio} to: ${width2}/${height2}.`,
-          err,
-        )
-
-        return switchVideoByDeviceId(
-          deviceId,
-          this.video,
-          width2,
-          height2,
-        )
+        return this.retryConnectWithLowerResulution(deviceId, sidx, width, height)
+      }
+      else {
+        throw err
       }
     }
     else if (['NotReadableError', 'TrackStartError'].includes(err.name)) {
@@ -256,6 +265,35 @@ export class RxCam {
 
     throw err
   }
+
+
+  // retry connect for specify type of error
+  private retryConnectWithLowerResulution(
+    deviceId: DeviceId,
+    sidx: StreamIdx,
+    width: number,
+    height: number,
+  ): Promise<MediaStreamConstraints> {
+
+    const ratio = <number> this.vconfig.retryRatio
+    const width2 = Math.floor(width * ratio)
+    const height2 = Math.floor(height * ratio)
+    const { minWidth, minHeight } = this.genStreamResolution(sidx)
+
+    if (width2 < minWidth || height2 < minHeight || width2 < 240) {
+      throw new Error(`retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
+    }
+    console.info(`retry connect(${sidx}). width/height: ${width}/${height}. ratio: ${ratio} to: ${width2}/${height2}.`)
+
+    return switchVideoByDeviceId(
+      deviceId,
+      this.video,
+      width2,
+      height2,
+    )
+    .catch(err => this.retryConnect(err, deviceId, sidx, width2, height2))
+  }
+
 
 } // end of class
 
