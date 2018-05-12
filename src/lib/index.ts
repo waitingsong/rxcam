@@ -43,8 +43,12 @@ export class RxCam {
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
   }
 
+  private disconnectBeforeSwitch: boolean = false
+
 
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
+    this.disconnectBeforeSwitch && this.disconnect()
+
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromMap(sidx)
     const { width, height } = this.getStreamResolution(sidx)
@@ -69,6 +73,8 @@ export class RxCam {
 
 
   connectNext(): Promise<MediaStreamConstraints> {
+    this.disconnectBeforeSwitch && this.disconnect()
+
     const sidx = getNextVideoIdx(this.curStreamIdx)
 
     if (typeof sidx === 'number') {
@@ -108,7 +114,12 @@ export class RxCam {
 
 
   disconnect() {
-    return unattachStream(this.video)
+    try {
+      return unattachStream(this.video)
+    }
+    catch (ex) {
+      console.info(ex)
+    }
   }
 
 
@@ -245,12 +256,7 @@ export class RxCam {
       }
     }
     else if (['NotReadableError', 'TrackStartError'].includes(err.name)) {
-      try {
-        this.disconnect()
-      }
-      catch (ex) {
-        console.info(ex)
-      }
+      this.disconnect()
 
       return switchVideoByDeviceId(
         deviceId,
@@ -258,6 +264,10 @@ export class RxCam {
         width,
         height,
       )
+      .then(constraint => {
+        this.disconnectBeforeSwitch = true
+        return constraint
+      })
     }
 
     throw err
@@ -300,7 +310,14 @@ export class RxCam {
 
 
 export async function init(options: InitialOpts): Promise<RxCam> {
-  const { config , ctx, skipInvokePermission, snapOpts, streamConfigs, defaultStreamConfig } = options
+  const {
+    config,
+    ctx,
+    skipInvokePermission,
+    snapOpts,
+    streamConfigs,
+    defaultStreamConfig,
+  } = options
   const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
 
   validateStreamConfigs(streamConfigs)
@@ -325,7 +342,13 @@ export async function init(options: InitialOpts): Promise<RxCam> {
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
   return resetDeviceInfo(skipInvokePermission)
-    .then(() => new RxCam(vconfig2, sopts, video, defaultStreamConfig2, streamConfigs2))
+    .then(() => new RxCam(
+      vconfig2,
+      sopts,
+      video,
+      defaultStreamConfig2,
+      streamConfigs2,
+    ))
 }
 
 export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
