@@ -7,7 +7,10 @@ import {
   DeviceId,
   MatchLabel,
   StreamConfig,
+  StreamConfigMap,
   StreamIdx,
+  SConfig,
+  VideoConfig,
 } from './model'
 import { assertNever } from './shared'
 
@@ -101,8 +104,10 @@ export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
 }
 
 
-export function parseMediaOrder(streamConfigs: StreamConfig[]): DeviceId[] {
-  const ret: DeviceId[] = []
+export function parseMediaOrder(vconfig: VideoConfig, streamConfigs: StreamConfig[]): StreamConfigMap {
+  const ret: StreamConfigMap = new Map()
+  const deviceIds: DeviceId[] = []
+  let sidx = 0
 
   for (const sconfig of streamConfigs) {
     const labels = sconfig.matchLabels
@@ -111,18 +116,30 @@ export function parseMediaOrder(streamConfigs: StreamConfig[]): DeviceId[] {
       continue
     }
     labels.forEach(label => {
-      const id = searchVideoMediaDeviceIdByLabel(label)
+      const deviceId = searchVideoMediaDeviceIdByLabel(label)
 
-      id && ret.push(id)
+      if (deviceId) {
+        ret.set(sidx, { ...sconfig, deviceId })
+        deviceIds.push(deviceId)
+        sidx += 1
+      }
     })
   }
 
-  if (ret.length >= getVideoMediaDeviceSize()) {
+  if (ret.size >= getVideoMediaDeviceSize()) {
     return ret
   }
   for (const [, deviceId] of videoIdxMap) {
-    if (! ret.includes(deviceId)) {
-      ret.push(deviceId)
+    if (! deviceIds.includes(deviceId)) {
+      ret.set(sidx, {
+        deviceId,
+        width: vconfig.width,
+        height: vconfig.height,
+        minWidth: vconfig.minWidth,
+        minHeight: vconfig.minHeight,
+      })
+      deviceIds.push(deviceId)
+      sidx += 1
     }
   }
 

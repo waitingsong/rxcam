@@ -48,6 +48,11 @@ export interface StreamConfig {
   rotate?: number // override by SnapOpt.rotate
 }
 
+export interface SConfig extends StreamConfig {
+  deviceId: DeviceId
+}
+export type StreamConfigMap = Map<StreamIdx, SConfig>
+
 export interface VideoResolutionConfig {
   width: number
   height: number

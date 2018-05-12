@@ -19,7 +19,9 @@ import {
   InitialOpts,
   SnapOpts,
   StreamConfig,
+  StreamConfigMap,
   StreamIdx,
+  SConfig,
   VideoConfig,
   VideoResolutionConfig,
 } from './model'
@@ -28,7 +30,7 @@ import { calcVideoMaxResolution, initUI } from './ui'
 
 export class RxCam {
   curStreamIdx: StreamIdx
-  deviceIdOrder: DeviceId[] // match by deviceOrderbyLabel
+  sconfigMap: StreamConfigMap
 
   constructor(
     public vconfig: VideoConfig,
@@ -37,13 +39,13 @@ export class RxCam {
     public streamConfigs: StreamConfig[],
   ) {
     this.curStreamIdx = 0
-    this.deviceIdOrder = parseMediaOrder(this.streamConfigs)
+    this.sconfigMap = parseMediaOrder(this.vconfig, this.streamConfigs)
   }
 
 
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
     const sidx = streamIdx ? +streamIdx : 0
-    const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
+    const deviceId = this.getDeviceIdFromMap(sidx)
     const { width, height } = this.genStreamResolution(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, width, height)
@@ -69,7 +71,7 @@ export class RxCam {
     const sidx = getNextVideoIdx(this.curStreamIdx)
 
     if (typeof sidx === 'number') {
-      const deviceId = this.getDeviceIdFromDeviceOrder(sidx)
+      const deviceId = this.getDeviceIdFromMap(sidx)
       const { width, height } = this.genStreamResolution(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
@@ -98,8 +100,9 @@ export class RxCam {
     return this.video && this.video.played.length ? true : false
   }
 
-  getDeviceIdFromDeviceOrder(sidx: StreamIdx): DeviceId {
-    return this.deviceIdOrder[sidx]
+  getDeviceIdFromMap(sidx: StreamIdx): DeviceId {
+    const info = this.sconfigMap.get(sidx)
+    return info ? info.deviceId : ''
   }
 
 
@@ -156,19 +159,14 @@ export class RxCam {
   }
 
 
-  getDeviceIds() {
-    return this.deviceIdOrder
-  }
-
-
   getAllVideoInfo() {
     const ret = <MediaDeviceInfo[]> []
 
-    for (const deviceId of this.deviceIdOrder) {
+    for (const { deviceId } of this.sconfigMap.values()) {
       const info = getMediaDeviceInfo(deviceId)
-
       info && ret.push(info)
     }
+
     return ret
   }
 
