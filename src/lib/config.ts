@@ -3,7 +3,6 @@ import {
   DeviceId,
   ImgOpts,
   SnapOpts,
-  StreamConfig,
   StreamIdx,
   VideoConfig,
 } from './model'

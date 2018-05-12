@@ -10,8 +10,6 @@ import {
   StreamConfig,
   StreamConfigMap,
   StreamIdx,
-  SConfig,
-  VideoConfig,
 } from './model'
 import { assertNever } from './shared'
 
