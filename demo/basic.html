@@ -37,9 +37,10 @@
     const options = {
       ctx: document.querySelector('#my_camera'),
       config: {
-        width: 400,
-        height: 300,
+        width: 400, // preview width
+        height: 300,  // preview height
       },
+      defaultStreamConfig: {width: 800, height: 600}, // for capture
     }
 
     rxcam.init(options)
@@ -77,6 +78,7 @@
         width: 400,
         height: 300,
       },
+      defaultStreamConfig: {width: 800, height: 600},
     }
 
     rxcam.init(options)

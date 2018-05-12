@@ -37,13 +37,14 @@
     const options = {
       ctx: document.querySelector('#my_camera'),
       config: {
-        previewWidth: 400,
-        previewHeight: 300,
+        width: 400,
+        height: 300,
       },
+      defaultStreamConfig: {width: 800, height: 600}, // for not matched 
       streamConfigs: [
-        {streamIdx: 0, width: 200, height: 150},  // streamIdx start at Zero
-        {streamIdx: 1, width: 800, height: 600},
-      ]
+        {width: 3000, height: 2250, rotate: 90, matchLabels: ['Scanner']}, 
+        {width: 1600, height: 1200, rotate: 0, matchLabels: ['USB Camera']},
+      ],
     }
 
     init(options)
@@ -77,13 +78,14 @@
     const options = {
       ctx: document.querySelector('#my_camera'),
       config: {
-        previewWidth: 400,
-        previewHeight: 300,
+        width: 400,
+        height: 300,
       },
+      defaultStreamConfig: {width: 800, height: 600}, // for not matched 
       streamConfigs: [
-        {streamIdx: 0, width: 200, height: 150},
-        {streamIdx: 1, width: 800, height: 600},
-      ]
+        {width: 3000, height: 2250, rotate: 90, matchLabels: ['Scanner']}, 
+        {width: 1600, height: 1200, rotate: 0, matchLabels: ['USB Camera']},
+      ],
     }
 
     init(options)
