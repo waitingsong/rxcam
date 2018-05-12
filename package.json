@@ -54,6 +54,7 @@
     "eslint": "^4.19.1",
     "intelli-espower-loader": "^1.0.1",
     "istanbul": "^0.4.5",
+    "rxjs": "^6.1.0",
     "mocha": "^5.0.5",
     "mocha-lcov-reporter": "^1.3.0",
     "mz-modules": "^2.1.0",
@@ -69,6 +70,9 @@
     "tslint": "^5.9.1",
     "tslint-eslint-rules": "^5.1.0",
     "typescript": "^2.8.1"
+  },
+  "peerDependencies": {
+    "rxjs": "^6.1.0"
   },
   "scripts": {
     "bp:add": "git remote add bp https://github.com/waitingsong/npm-base",
