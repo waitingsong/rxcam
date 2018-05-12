@@ -4,6 +4,7 @@ import {
   videoIdxMap,
 } from './config'
 import {
+  BaseStreamConfig,
   DeviceId,
   MatchLabel,
   StreamConfig,
@@ -104,7 +105,7 @@ export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
 }
 
 
-export function parseMediaOrder(vconfig: VideoConfig, streamConfigs: StreamConfig[]): StreamConfigMap {
+export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamConfigs: StreamConfig[]): StreamConfigMap {
   const ret: StreamConfigMap = new Map()
   const deviceIds: DeviceId[] = []
   let sidx = 0
@@ -133,10 +134,11 @@ export function parseMediaOrder(vconfig: VideoConfig, streamConfigs: StreamConfi
     if (! deviceIds.includes(deviceId)) {
       ret.set(sidx, {
         deviceId,
-        width: vconfig.width,
-        height: vconfig.height,
-        minWidth: vconfig.minWidth,
-        minHeight: vconfig.minHeight,
+        width: defaultStreamConfig.width,
+        height: defaultStreamConfig.height,
+        minWidth: defaultStreamConfig.minWidth,
+        minHeight: defaultStreamConfig.minHeight,
+        rotate: defaultStreamConfig.rotate,
       })
       deviceIds.push(deviceId)
       sidx += 1

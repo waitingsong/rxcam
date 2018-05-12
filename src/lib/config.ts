@@ -1,7 +1,9 @@
 import {
+  BaseStreamConfig,
   DeviceId,
   ImgOpts,
   SnapOpts,
+  StreamConfig,
   StreamIdx,
   VideoConfig,
 } from './model'
@@ -21,11 +23,17 @@ export const initialVideoConfig: VideoConfig = {
   fps: 30,
   width: 800,
   height: 600,
-  minWidth: 640,  // for retry connect
-  minHeight: 480, // for retry connect
   previewWidth: 0,
   previewHeight: 0,
   retryRatio: 0.8,
+}
+
+export const initialDefaultStreamConfig: BaseStreamConfig = {
+  width: 800,
+  height: 600,
+  minWidth: 640,
+  minHeight: 480,
+  rotate: 0,
 }
 
 export const initialSnapOpts: SnapOpts = {

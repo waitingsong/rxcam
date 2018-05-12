@@ -16,6 +16,7 @@ export interface InitialOpts {
   debug?: boolean
   snapOpts?: SnapOpts
   streamConfigs?: StreamConfig[]
+  defaultStreamConfig?: BaseStreamConfig
   skipInvokePermission?: boolean
 }
 
@@ -32,33 +33,26 @@ export interface VideoConfig {
   fps: number
   width: number   // maybe override by max of StreamConfig['width]
   height: number  // maybe override by max of StreamConfig['height']
-  minWidth?: number,  // for retry connect, override by value of StreamConfig.minWidth
-  minHeight?: number, // for retry connect, override by value of StreamConfig.minHeight
   previewWidth?: number // if omit use width value
   previewHeight?: number  // if omit use height value
   retryRatio?: number // retry lower width/height constraints if connect() fail
 }
 
-export interface StreamConfig {
+export interface BaseStreamConfig {
   width: number
   height: number
-  matchLabels?: MatchLabel[]
   minWidth?: number,  // for retry connect
   minHeight?: number, // for retry connect
   rotate?: number // override by SnapOpt.rotate
 }
-
+export interface StreamConfig extends BaseStreamConfig {
+  matchLabels?: MatchLabel[]
+}
 export interface SConfig extends StreamConfig {
   deviceId: DeviceId
 }
-export type StreamConfigMap = Map<StreamIdx, SConfig>
 
-export interface VideoResolutionConfig {
-  width: number
-  height: number
-  minWidth: number
-  minHeight: number
-}
+export type StreamConfigMap = Map<StreamIdx, SConfig>
 
 export interface SnapOpts {
   dataType: ImgDataType

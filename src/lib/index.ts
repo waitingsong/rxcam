@@ -1,4 +1,4 @@
-import { initialSnapOpts, initialVideoConfig } from './config'
+import { initialDefaultStreamConfig, initialSnapOpts, initialVideoConfig } from './config'
 import {
   findDevices,
   getMediaDeviceInfo,
@@ -13,6 +13,7 @@ import {
   unattachStream,
 } from './media'
 import {
+  BaseStreamConfig,
   DeviceId,
   ImgCaptureRet,
   ImgOpts,
@@ -23,7 +24,6 @@ import {
   StreamIdx,
   SConfig,
   VideoConfig,
-  VideoResolutionConfig,
 } from './model'
 import { calcVideoMaxResolution, initUI } from './ui'
 
@@ -36,17 +36,18 @@ export class RxCam {
     public vconfig: VideoConfig,
     public snapOpts: SnapOpts,
     public video: HTMLVideoElement,
+    public dsconfig: BaseStreamConfig,
     public streamConfigs: StreamConfig[],
   ) {
     this.curStreamIdx = 0
-    this.sconfigMap = parseMediaOrder(this.vconfig, this.streamConfigs)
+    this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
   }
 
 
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromMap(sidx)
-    const { width, height } = this.genStreamResolution(sidx)
+    const { width, height } = this.getStreamResolution(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, width, height)
       .then(constraints => {
@@ -72,7 +73,7 @@ export class RxCam {
 
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromMap(sidx)
-      const { width, height } = this.genStreamResolution(sidx)
+      const { width, height } = this.getStreamResolution(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
         .then(constraints => {
@@ -122,7 +123,7 @@ export class RxCam {
 
 
   snapshot(snapOpts?: Partial<SnapOpts>): Promise<ImgCaptureRet> {
-    const { width, height } = this.genStreamResolution(this.curStreamIdx)
+    const { width, height } = this.getStreamResolution(this.curStreamIdx)
     const sopts: SnapOpts = snapOpts
       ? { ...this.snapOpts, width, height, ...snapOpts }
       : { ...this.snapOpts, width, height }
@@ -178,7 +179,7 @@ export class RxCam {
 
   // get rotate value of streamConfig by sidx if defined
   getStreamConfigRotate(sidx: StreamIdx): number {
-    const rotate = this.streamConfigs[sidx]
+    const { rotate } = this.getStreamConfig(sidx)
 
     return rotate ? +rotate : 0
   }
@@ -187,29 +188,29 @@ export class RxCam {
     return switchVideoByDeviceId(deviceId, this.video, width, height)
   }
 
+
+  private getStreamConfig(sidx: StreamIdx): SConfig {
+    const sconfig = this.sconfigMap.get(+sidx)
+
+    if (! sconfig) {
+      throw new Error(`invalid sidx: ${sidx}`)
+    }
+    return sconfig
+  }
+
+
   // for switchVideo
-  private genStreamResolution(sidx: StreamIdx): VideoResolutionConfig {
-    const sconfig = this.streamConfigs[sidx]
-    const vconfig = this.vconfig
-    const ret: VideoResolutionConfig = {
-      width: vconfig.width,
-      height: vconfig.height,
-      minWidth: vconfig.minWidth ? vconfig.minWidth : vconfig.width,
-      minHeight: vconfig.minHeight ? vconfig.minHeight : vconfig.height,
+  private getStreamResolution(sidx: StreamIdx): BaseStreamConfig {
+    const sconfig = this.getStreamConfig(sidx)
+    const ret: BaseStreamConfig = {
+      width: sconfig.width,
+      height: sconfig.height,
+      minWidth: sconfig.minWidth,
+      minHeight: sconfig.minHeight,
+      rotate: sconfig.rotate ? sconfig.rotate : 0,
     }
 
-    if (sconfig) {
-      if (sconfig.width) {
-        ret.width = sconfig.width
-        ret.height = sconfig.height
-      }
-      if (sconfig.minWidth) {
-        ret.minWidth = sconfig.minWidth
-        ret.minHeight = <number> sconfig.minHeight
-      }
-    }
-
-    if (ret.minWidth > ret.width) {
+    if (ret.minWidth && ret.minWidth > ret.width) {
       ret.minWidth = ret.width
       ret.minHeight = ret.height
     }
@@ -217,9 +218,8 @@ export class RxCam {
     return ret
   }
 
-
   private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
-    const sconfig = this.streamConfigs[sidx]
+    const sconfig = this.getStreamConfig(sidx)
 
     if (sconfig) {
       sconfig.width = +width
@@ -276,12 +276,16 @@ export class RxCam {
     const ratio = <number> this.vconfig.retryRatio
     const width2 = Math.floor(width * ratio)
     const height2 = Math.floor(height * ratio)
-    const { minWidth, minHeight } = this.genStreamResolution(sidx)
+    const { minWidth, minHeight } = this.getStreamResolution(sidx)
 
-    if (width2 < minWidth || height2 < minHeight || width2 < 240) {
+    if (width2 < 240) { // @HARDCODE
       throw new Error(`retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
     }
-    console.info(`retry connect(${sidx}). width/height: ${width}/${height}. ratio: ${ratio} to: ${width2}/${height2}.`)
+    else if (minWidth && minHeight) {
+      if (width2 < minWidth || height2 < minHeight) {
+        throw new Error(`retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
+      }
+    }
 
     return switchVideoByDeviceId(
       deviceId,
@@ -296,16 +300,17 @@ export class RxCam {
 } // end of class
 
 
-export async function init(initialOpts: InitialOpts): Promise<RxCam> {
-  const { config , ctx, skipInvokePermission, snapOpts, streamConfigs } = initialOpts
+export async function init(options: InitialOpts): Promise<RxCam> {
+  const { config , ctx, skipInvokePermission, snapOpts, streamConfigs, defaultStreamConfig } = options
   const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
 
   validateStreamConfigs(streamConfigs)
-  let sconfigs: StreamConfig[] = []
+  let streamConfigs2: StreamConfig[] = []
+  const defaultStreamConfig2 = parseDefaultStreamConfig(vconfig, defaultStreamConfig)
 
   if (streamConfigs && streamConfigs.length) {
-    sconfigs = parseStreamConfigs(streamConfigs, vconfig.width, vconfig.height)
-    const [maxWidth, maxHeight] = calcVideoMaxResolution(sconfigs)
+    streamConfigs2 = parseStreamConfigs(streamConfigs, defaultStreamConfig2.width, defaultStreamConfig2.height)
+    const [maxWidth, maxHeight] = calcVideoMaxResolution(streamConfigs2)
 
     vconfig.width = maxWidth
     vconfig.height = maxHeight
@@ -317,7 +322,7 @@ export async function init(initialOpts: InitialOpts): Promise<RxCam> {
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
   return resetDeviceInfo(skipInvokePermission)
-    .then(() => new RxCam(vconfig2, sopts, video, sconfigs))
+    .then(() => new RxCam(vconfig2, sopts, video, defaultStreamConfig2, streamConfigs2))
 }
 
 export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
@@ -351,7 +356,7 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
 }
 
 /**
- * update streamConfig.width/height from vconfig if not assign
+ * update streamConfig.width/height from vconfig/defaultStreamConfig if not assign
  */
 function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
   for (const config of sconfigs) {
@@ -359,7 +364,17 @@ function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: num
       config.width = +width
       config.height = +height
     }
+    if (config.minWidth && config.minWidth > config.width) {
+      config.minWidth = config.width
+      config.minWidth = config.height
+    }
   }
 
   return sconfigs
+}
+
+function parseDefaultStreamConfig(vconfig: VideoConfig, defaultStreamConfig?: Partial<BaseStreamConfig>) {
+  const ret: BaseStreamConfig = { ...initialDefaultStreamConfig, ...defaultStreamConfig }
+
+  return ret
 }
