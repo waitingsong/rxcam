@@ -31,10 +31,8 @@ export interface RxEvent {
 export interface VideoConfig {
   flipHoriz: boolean
   fps: number
-  width: number   // maybe override by max of StreamConfig['width]
-  height: number  // maybe override by max of StreamConfig['height']
-  previewWidth?: number // if omit use width value
-  previewHeight?: number  // if omit use height value
+  width: number   // for preview
+  height: number  // for preview
   retryRatio?: number // retry lower width/height constraints if connect() fail
 }
 

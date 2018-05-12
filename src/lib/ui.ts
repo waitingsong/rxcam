@@ -7,7 +7,12 @@ import {
 } from './model'
 
 
-export function initUI(ctx: HTMLElement, vconfig: Partial<VideoConfig>): [VideoConfig, HTMLVideoElement] {
+export function initUI(
+  ctx: HTMLElement,
+  vconfig: Partial<VideoConfig>,
+  maxWidth: number,
+  maxHeight: number,
+): [VideoConfig, HTMLVideoElement] {
   const config: VideoConfig = { ...initialVideoConfig, ...vconfig }
 
   if (!ctx) {
@@ -20,22 +25,16 @@ export function initUI(ctx: HTMLElement, vconfig: Partial<VideoConfig>): [VideoC
     config.fps = 30
   }
 
-  if (! config.previewWidth || config.previewWidth <= 0) {
-    config.previewWidth = config.width
-  }
-  if (! config.previewHeight || config.previewHeight <= 0) {
-    config.previewHeight = config.height
-  }
-  const scaleX = config.previewWidth / config.width
-  const scaleY = config.previewHeight / config.height
+  const scaleX = config.width / maxWidth
+  const scaleY = config.height / maxHeight
   const video = document.createElement('video')
 
   video.setAttribute('autoplay', 'autoplay')
-  video.width = config.width
-  video.height = config.height
+  video.width = maxWidth
+  video.height = maxHeight
   if (video.style) {
-    video.style.width = '' + config.width + 'px'
-    video.style.height = '' + config.height + 'px'
+    video.style.width = '' + maxWidth + 'px'
+    video.style.height = '' + maxHeight + 'px'
   }
 
   if (scaleX !== 1.01 || scaleY !== 1.01) {
@@ -48,8 +47,8 @@ export function initUI(ctx: HTMLElement, vconfig: Partial<VideoConfig>): [VideoC
   const div = document.createElement('div')
 
   div.classList.add('rxcam-canvas-container')
-  div.style.width = config.previewWidth + 'px'
-  div.style.height = config.previewHeight + 'px'
+  div.style.width = config.width + 'px'
+  div.style.height = config.height + 'px'
   div.style.overflow = 'hidden'
   div.appendChild(video)
   ctx.appendChild(div)
@@ -61,10 +60,10 @@ export function calcVideoMaxResolution(sconfigs: StreamConfig[]): [number, numbe
   let width = 0
   let height = 0
 
-  for (const config of sconfigs) {
-    if (config.width > width) {
-      width = +config.width
-      height = +config.height
+  for (const sconfig of sconfigs) {
+    if (sconfig.width > width) {
+      width = +sconfig.width
+      height = +sconfig.height
     }
   }
 

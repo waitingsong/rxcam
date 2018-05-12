@@ -306,16 +306,20 @@ export async function init(options: InitialOpts): Promise<RxCam> {
   validateStreamConfigs(streamConfigs)
   let streamConfigs2: StreamConfig[] = []
   const defaultStreamConfig2 = parseDefaultStreamConfig(vconfig, defaultStreamConfig)
+  let maxWidth = vconfig.width
+  let maxHeight = vconfig.height
 
   if (streamConfigs && streamConfigs.length) {
     streamConfigs2 = parseStreamConfigs(streamConfigs, defaultStreamConfig2.width, defaultStreamConfig2.height)
-    const [maxWidth, maxHeight] = calcVideoMaxResolution(streamConfigs2)
+    const [maxw, maxh] = calcVideoMaxResolution(streamConfigs2)
 
-    vconfig.width = maxWidth
-    vconfig.height = maxHeight
+    if (maxw) {
+      maxWidth = maxw
+      maxHeight = maxh
+    }
   }
 
-  const [vconfig2, video] = initUI(ctx, vconfig)
+  const [vconfig2, video] = initUI(ctx, vconfig, maxWidth, maxHeight)
   const sopts: SnapOpts = snapOpts
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
