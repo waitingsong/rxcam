@@ -358,14 +358,14 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
  * update streamConfig.width/height from vconfig/defaultStreamConfig if not assign
  */
 function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
-  for (const config of sconfigs) {
-    if (! config.width && ! config.height) {
-      config.width = +width
-      config.height = +height
+  for (const sconfig of sconfigs) {
+    if (! sconfig.width && ! sconfig.height) {
+      sconfig.width = +width
+      sconfig.height = +height
     }
-    if (config.minWidth && config.minWidth > config.width) {
-      config.minWidth = config.width
-      config.minWidth = config.height
+    if (sconfig.minWidth && sconfig.minWidth > sconfig.width) {
+      sconfig.minWidth = sconfig.width
+      sconfig.minWidth = sconfig.height
     }
   }
 
