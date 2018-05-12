@@ -182,7 +182,7 @@ export class RxCam {
   }
 
 
-  private getStreamConfig(sidx: StreamIdx): SConfig {
+  getSConfig(sidx: StreamIdx): SConfig {
     const sconfig = this.sconfigMap.get(+sidx)
 
     if (! sconfig) {
@@ -193,14 +193,14 @@ export class RxCam {
 
   // get rotate value of streamConfig by sidx if defined
   private getStreamConfigRotate(sidx: StreamIdx): number {
-    const { rotate } = this.getStreamConfig(sidx)
+    const { rotate } = this.getSConfig(sidx)
 
     return rotate ? +rotate : 0
   }
 
   // for switchVideo
   private getStreamResolution(sidx: StreamIdx): BaseStreamConfig {
-    const sconfig = this.getStreamConfig(sidx)
+    const sconfig = this.getSConfig(sidx)
     const ret: BaseStreamConfig = {
       width: sconfig.width,
       height: sconfig.height,
@@ -218,7 +218,7 @@ export class RxCam {
   }
 
   private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
-    const sconfig = this.getStreamConfig(sidx)
+    const sconfig = this.getSConfig(sidx)
 
     if (sconfig) {
       sconfig.width = +width
