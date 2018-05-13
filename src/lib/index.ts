@@ -63,12 +63,8 @@ export class RxCam {
     const { width, height } = this.getStreamResolution(sidx)
 
     return switchVideoByDeviceId(deviceId, this.video, width, height)
-      .then(constraints => {
-        this.curStreamIdx = sidx
-        return constraints
-      })
       .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
-      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))  // catch twice
       .then(constraints => {
         const vOpts = <MediaTrackConstraints> constraints.video
         const w = <number> (<ConstrainLongRange> vOpts.width).ideal
@@ -106,12 +102,8 @@ export class RxCam {
       const { width, height } = this.getStreamResolution(sidx)
 
       return switchVideoByDeviceId(deviceId, this.video, width, height)
-        .then(constraints => {
-          this.curStreamIdx = sidx
-          return constraints
-        })
         .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
-        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
+        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))  // catch twice
         .then(constraints => {
           const vOpts = <MediaTrackConstraints> constraints.video
           const w = <number> (<ConstrainLongRange> vOpts.width).ideal
