@@ -171,6 +171,7 @@ export class RxCam {
   destroy() {
     this.disconnect()
     this.deviceChangeSub.unsubscribe()
+    this.subjectSub.unsubscribe()
     this.subject.unsubscribe()
   }
 
