@@ -1,7 +1,9 @@
 import {
+  Actions,
   BaseStreamConfig,
   DeviceId,
   ImgOpts,
+  RxCamEvent,
   SnapOpts,
   StreamIdx,
   VideoConfig,
@@ -53,4 +55,8 @@ export const inititalThumbnailOpts: ImgOpts = {
   height: 300,
   imageFormat: 'jpeg',
   jpegQuality: 90,
+}
+
+export const initialEvent: RxCamEvent = {
+  action: Actions.noneAvailable,
 }

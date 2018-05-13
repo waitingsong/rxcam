@@ -1,4 +1,6 @@
-import { initialDefaultStreamConfig, initialSnapOpts, initialVideoConfig } from './config'
+import { Subject } from 'rxjs'
+
+import { initialDefaultStreamConfig, initialEvent, initialSnapOpts, initialVideoConfig } from './config'
 import {
   findDevices,
   getMediaDeviceInfo,
@@ -13,11 +15,13 @@ import {
   unattachStream,
 } from './media'
 import {
+  Actions,
   BaseStreamConfig,
   DeviceId,
   ImgCaptureRet,
   ImgOpts,
   InitialOpts,
+  RxCamEvent,
   SnapOpts,
   StreamConfig,
   StreamConfigMap,
@@ -31,6 +35,7 @@ import { calcVideoMaxResolution, initUI } from './ui'
 export class RxCam {
   curStreamIdx: StreamIdx
   sconfigMap: StreamConfigMap
+  subject: Subject<RxCamEvent>
 
   constructor(
     public vconfig: VideoConfig,
@@ -41,6 +46,7 @@ export class RxCam {
   ) {
     this.curStreamIdx = 0
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
+    this.subject = new Subject()
   }
 
   private disconnectBeforeSwitch: boolean = false
@@ -67,7 +73,22 @@ export class RxCam {
 
         this.curStreamIdx = sidx
         this.updateStreamResolution(sidx, +w, +h)
+
+        this.subject.next({
+          ...initialEvent,
+          action: Actions.connected,
+          payload: { constraints, deviceId, sidx },
+        })
+
         return constraints
+      })
+      .catch(err => {
+        this.subject.next({
+          ...initialEvent,
+          action: Actions.exception,
+          err,
+        })
+        throw err
       })
   }
 
@@ -95,11 +116,26 @@ export class RxCam {
 
           this.curStreamIdx = sidx
           this.updateStreamResolution(sidx, +w, +h)
+
+          this.subject.next({
+            ...initialEvent,
+            action: Actions.connected,
+            payload: { constraints, deviceId, sidx },
+          })
+
           return constraints
+        })
+        .catch(err => {
+          this.subject.next({
+            ...initialEvent,
+            action: Actions.exception,
+            err,
+          })
+          throw err
         })
     }
     else {
-      return Promise.reject('next not available')
+      return Promise.reject('next stream not available')
     }
   }
 
@@ -115,10 +151,18 @@ export class RxCam {
 
   disconnect() {
     try {
-      return unattachStream(this.video)
+      unattachStream(this.video)
+      this.subject.next({
+        ...initialEvent,
+        action: Actions.disconnected,
+      })
     }
     catch (ex) {
-      console.info(ex)
+      this.subject.next({
+        ...initialEvent,
+        action: Actions.exception,
+        err: ex,
+      })
     }
   }
 
@@ -126,7 +170,6 @@ export class RxCam {
   pauseVideo() {
     this.video.pause()
   }
-
 
   playVideo() {
     this.video.play()
@@ -149,9 +192,24 @@ export class RxCam {
         setTimeout(() => {
           takePhoto(this.video, sopts)
             .then(url => {
+              this.subject.next({
+                ...initialEvent,
+                action: Actions.takePhotoSucc,
+                payload: { sopts, url },
+              })
+
               resolve({ url, options: sopts })
             })
-            .catch(reject)
+            .catch(err => {
+              this.subject.next({
+                ...initialEvent,
+                action: Actions.takePhotoFail,
+                err,
+                payload: { sopts },
+              })
+
+              reject(err)
+            })
         }, snapDelay)
       })
     }
@@ -161,10 +219,21 @@ export class RxCam {
       return takePhoto(this.video, sopts)
         .then(url => {
           this.playVideo()
+          this.subject.next({
+            ...initialEvent,
+            action: Actions.takePhotoSucc,
+            payload: { sopts, url },
+          })
           return { url, options: sopts }
         })
         .catch(err => {
           this.playVideo()
+          this.subject.next({
+            ...initialEvent,
+            action: Actions.takePhotoFail,
+            err,
+            payload: { sopts },
+          })
           throw err
         })
     }

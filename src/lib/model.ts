@@ -20,13 +20,6 @@ export interface InitialOpts {
   skipInvokePermission?: boolean
 }
 
-export interface RxEvent {
-  action: string
-  payload: {
-    sym?: CamSym
-    [prop: string]: any,
-  }
-}
 
 export interface VideoConfig {
   flipHoriz: boolean
@@ -76,4 +69,22 @@ export interface ImgOpts {
 export interface ImgCaptureRet {
   url: string // DataURL or ObjectURL
   options: SnapOpts
+}
+
+export const enum Actions {
+  exception = 'exception',
+  initial = 'initial',
+  noneAvailable = 'eventNoneAvailable',
+  connected = 'connected',
+  disconnected = 'disconnected',
+  takePhoto = 'takePhoto',
+  takePhotoSucc = 'takePhotoSucc',
+  takePhotoFail = 'takePhotoFail',
+}
+
+export interface RxCamEvent {
+  action: Actions
+  msg?: string
+  err?: Error
+  payload?: any
 }
