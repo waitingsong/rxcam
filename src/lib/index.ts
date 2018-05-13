@@ -8,14 +8,12 @@ import {
   initialVideoConfig,
 } from './config'
 import {
-  findDevices,
   getMediaDeviceInfo,
   getNextVideoIdx,
-  invokePermission,
   parseMediaOrder,
   resetDeviceInfo,
 } from './device'
-import { handleDeviceChange, subscribeDeviceChange } from './event'
+import { subscribeDeviceChange } from './event'
 import {
   switchVideoByDeviceId,
   takePhoto,

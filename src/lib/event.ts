@@ -2,14 +2,12 @@ import { from, of, Subject, Subscription } from 'rxjs'
 import {
   catchError,
   delay,
-  map,
   switchMap,
-  tap,
   throttleTime,
 } from 'rxjs/operators'
 
 import { deviceChange$, initialEvent, videoIdxMap } from './config'
-import { findDevices, resetDeviceInfo, resetDeviceMap } from './device'
+import { resetDeviceInfo, resetDeviceMap } from './device'
 import { Actions, RxCamEvent } from './model'
 
 
