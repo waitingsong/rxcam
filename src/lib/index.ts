@@ -301,7 +301,7 @@ export class RxCam {
   private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
     const sconfig = this.getSConfig(sidx)
 
-    if (sconfig) {
+    if (sconfig && sconfig.width !== width) {
       sconfig.width = +width
       sconfig.height = +height
     }
