@@ -1,4 +1,5 @@
-import { init, resetDeviceInfo, RxCam } from './lib/index'
+import { resetDeviceInfo } from './lib/device'
+import { init, RxCam } from './lib/index'
 import { calcImgThumbResolution, exportFromCanvas, genCanvas, takeThumbnail } from './lib/media'
 
 
@@ -6,10 +7,10 @@ export * from './lib/model'
 export {
   RxCam,
   init,
-  resetDeviceInfo,
 
   calcImgThumbResolution,
   exportFromCanvas,
   genCanvas,
+  resetDeviceInfo,
   takeThumbnail,
 }

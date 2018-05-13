@@ -7,6 +7,7 @@ import {
   getNextVideoIdx,
   invokePermission,
   parseMediaOrder,
+  resetDeviceInfo,
 } from './device'
 import { subscribeDeviceChange } from './event'
 import {
@@ -428,16 +429,6 @@ export async function init(options: InitialOpts): Promise<RxCam> {
     ))
 }
 
-export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
-  // resetDeviceMap()
-  if (skipInvokePermission) {
-    return findDevices()
-      .catch(console.info)
-  }
-  return invokePermission()
-    .then(findDevices)
-    .catch(console.info)
-}
 
 function validateStreamConfigs(configs?: StreamConfig[]): void {
   if (!configs) {

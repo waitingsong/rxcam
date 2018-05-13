@@ -39,6 +39,17 @@ export function invokePermission(): Promise<void> {
     })
 }
 
+export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
+  // resetDeviceMap()
+  if (skipInvokePermission) {
+    return findDevices()
+      .catch(console.info)
+  }
+  return invokePermission()
+    .then(findDevices)
+    .catch(console.info)
+}
+
 
 export function findDevices() {
   return mediaDevices.enumerateDevices()
