@@ -76,6 +76,7 @@ export const enum Actions {
   initial = 'initial',
   noneAvailable = 'eventNoneAvailable',
   connected = 'connected',
+  deviceChanged = 'deviceChanged',
   disconnected = 'disconnected',
   takePhoto = 'takePhoto',
   takePhotoSucc = 'takePhotoSucc',

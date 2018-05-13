@@ -1,5 +1,4 @@
 import { Observable, Observer } from 'rxjs'
-import { debounceTime, throttleTime } from 'rxjs/operators'
 
 import {
   Actions,
@@ -67,4 +66,3 @@ export const initialEvent: RxCamEvent = {
 export const deviceChange$: Observable<Event> = Observable.create((obv: Observer<Event>) => {
   mediaDevices.ondevicechange = ev => obv.next(ev)
 })
-  .pipe(throttleTime(1000))

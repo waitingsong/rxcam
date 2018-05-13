@@ -1,4 +1,4 @@
-import { Subject } from 'rxjs'
+import { Subject, Subscription } from 'rxjs'
 
 import { initialDefaultStreamConfig, initialEvent, initialSnapOpts, initialVideoConfig } from './config'
 import {
@@ -8,6 +8,7 @@ import {
   invokePermission,
   parseMediaOrder,
 } from './device'
+import { subscribeDeviceChange } from './event'
 import {
   switchVideoByDeviceId,
   takePhoto,
@@ -36,6 +37,8 @@ export class RxCam {
   curStreamIdx: StreamIdx
   sconfigMap: StreamConfigMap
   subject: Subject<RxCamEvent>
+  private disconnectBeforeSwitch: boolean = false
+  private deviceChangeSub: Subscription
 
   constructor(
     public vconfig: VideoConfig,
@@ -47,9 +50,8 @@ export class RxCam {
     this.curStreamIdx = 0
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
     this.subject = new Subject()
+    this.deviceChangeSub = subscribeDeviceChange(this.subject)
   }
-
-  private disconnectBeforeSwitch: boolean = false
 
 
   connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
@@ -164,6 +166,12 @@ export class RxCam {
         err: ex,
       })
     }
+  }
+
+  destroy() {
+    this.disconnect()
+    this.deviceChangeSub.unsubscribe()
+    this.subject.unsubscribe()
   }
 
 
