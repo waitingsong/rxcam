@@ -1,3 +1,6 @@
+import { Observable, Observer } from 'rxjs'
+import { debounceTime, throttleTime } from 'rxjs/operators'
+
 import {
   Actions,
   BaseStreamConfig,
@@ -60,3 +63,8 @@ export const inititalThumbnailOpts: ImgOpts = {
 export const initialEvent: RxCamEvent = {
   action: Actions.noneAvailable,
 }
+
+export const deviceChange$: Observable<Event> = Observable.create((obv: Observer<Event>) => {
+  mediaDevices.ondevicechange = ev => obv.next(ev)
+})
+  .pipe(throttleTime(1000))
