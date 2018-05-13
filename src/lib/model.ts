@@ -14,6 +14,7 @@ export interface InitialOpts {
   config: Partial<VideoConfig>
   ctx: HTMLElement
   debug?: boolean
+  deviceChangeDelay?: number // msec
   snapOpts?: SnapOpts
   streamConfigs?: StreamConfig[]
   defaultStreamConfig?: BaseStreamConfig
@@ -76,8 +77,10 @@ export const enum Actions {
   initial = 'initial',
   noneAvailable = 'eventNoneAvailable',
   connected = 'connected',
-  deviceChange = 'deviceChange',
+  deviceChange = 'onDeviceChange',
+  deviceRemoved = 'deviceRemoved',
   disconnected = 'disconnected',
+  ready = 'ready',
   takePhoto = 'takePhoto',
   takePhotoSucc = 'takePhotoSucc',
   takePhotoFail = 'takePhotoFail',

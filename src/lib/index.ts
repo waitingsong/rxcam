@@ -1,6 +1,12 @@
 import { Subject, Subscription } from 'rxjs'
 
-import { initialDefaultStreamConfig, initialEvent, initialSnapOpts, initialVideoConfig } from './config'
+import {
+  initialDefaultStreamConfig,
+  initialDeviceChangDelay,
+  initialEvent,
+  initialSnapOpts,
+  initialVideoConfig,
+} from './config'
 import {
   findDevices,
   getMediaDeviceInfo,
@@ -38,7 +44,7 @@ export class RxCam {
   curStreamIdx: StreamIdx
   sconfigMap: StreamConfigMap
   subject: Subject<RxCamEvent>
-  private disconnectBeforeSwitch: boolean = false
+  private disconnectBeforeSwitch = false
   private deviceChangeSub: Subscription
   private subjectSub: Subscription
 
@@ -48,12 +54,13 @@ export class RxCam {
     public video: HTMLVideoElement,
     public dsconfig: BaseStreamConfig,
     public streamConfigs: StreamConfig[],
+    public deviceChangeDelay: number,
   ) {
     this.curStreamIdx = 0
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
     this.subject = new Subject()
     this.subjectSub = this.innerSubscribe()
-    this.deviceChangeSub = subscribeDeviceChange(this.subject)
+    this.deviceChangeSub = subscribeDeviceChange(this.subject, this.deviceChangeDelay)
   }
 
 
@@ -277,14 +284,38 @@ export class RxCam {
 
   private innerSubscribe() {
     return this.subject.subscribe(ev => {
-      console.info('inner ev:', ev)
+      // console.info('inner ev:', ev)
 
       switch (ev.action) {
+        case Actions.ready:
+          if (this.getAllVideoInfo().length && ! this.isPlaying()) {
+            this.connect(this.curStreamIdx)
+          }
+          break
+
+        case Actions.deviceRemoved:
+          this.sconfigMap.clear()
+          this.disconnect()
+          break
+
         case Actions.deviceChange:
-          handleDeviceChange()
-            .then(() => {
-              this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
-            })
+          this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
+
+          if (this.sconfigMap.size) {
+            try {
+              this.getSConfig(this.curStreamIdx)
+              this.subject.next({
+                ...initialEvent,
+                action: Actions.ready,
+              })
+            }
+            catch (ex) {
+              this.disconnect()
+            }
+          }
+          else {
+            this.disconnect()
+          }
           break
       }
     })
@@ -407,6 +438,7 @@ export async function init(options: InitialOpts): Promise<RxCam> {
     snapOpts,
     streamConfigs,
     defaultStreamConfig,
+    deviceChangeDelay,
   } = options
   const vconfig: VideoConfig = { ...initialVideoConfig, ...config }
 
@@ -438,6 +470,9 @@ export async function init(options: InitialOpts): Promise<RxCam> {
       video,
       defaultStreamConfig2,
       streamConfigs2,
+      (typeof deviceChangeDelay === 'number' && deviceChangeDelay > 0
+        ? deviceChangeDelay
+        : initialDeviceChangDelay),
     ))
 }
 

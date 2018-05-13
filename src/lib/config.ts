@@ -21,6 +21,8 @@ export const mediaDevices: MediaDevices = navigator.mediaDevices
 export const deviceMap = new Map<DeviceId, MediaDeviceInfo>()
 export const videoIdxMap = new Map<StreamIdx, DeviceId>()
 
+export const initialDeviceChangDelay = 1000 // msec
+
 export const initialVideoConfig: VideoConfig = {
   flipHoriz: false,
   fps: 30,
