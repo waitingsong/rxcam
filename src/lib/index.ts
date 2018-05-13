@@ -9,7 +9,7 @@ import {
   parseMediaOrder,
   resetDeviceInfo,
 } from './device'
-import { subscribeDeviceChange } from './event'
+import { handleDeviceChange, subscribeDeviceChange } from './event'
 import {
   switchVideoByDeviceId,
   takePhoto,
@@ -40,6 +40,7 @@ export class RxCam {
   subject: Subject<RxCamEvent>
   private disconnectBeforeSwitch: boolean = false
   private deviceChangeSub: Subscription
+  private subjectSub: Subscription
 
   constructor(
     public vconfig: VideoConfig,
@@ -51,6 +52,7 @@ export class RxCam {
     this.curStreamIdx = 0
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
     this.subject = new Subject()
+    this.subjectSub = this.innerSubscribe()
     this.deviceChangeSub = subscribeDeviceChange(this.subject)
   }
 
@@ -272,6 +274,23 @@ export class RxCam {
     return sconfig
   }
 
+
+  private innerSubscribe() {
+    return this.subject.subscribe(ev => {
+      console.info('inner ev:', ev)
+
+      switch (ev.action) {
+        case Actions.deviceChange:
+          handleDeviceChange()
+            .then(() => {
+              this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
+            })
+          break
+      }
+    })
+  }
+
+
   // get rotate value of streamConfig by sidx if defined
   private getStreamConfigRotate(sidx: StreamIdx): number {
     const { rotate } = this.getSConfig(sidx)
@@ -297,6 +316,7 @@ export class RxCam {
 
     return ret
   }
+
 
   private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
     const sconfig = this.getSConfig(sidx)

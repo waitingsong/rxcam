@@ -4,6 +4,7 @@ import {
 } from 'rxjs/operators'
 
 import { deviceChange$, initialEvent } from './config'
+import { resetDeviceInfo, resetDeviceMap } from './device'
 import { Actions, RxCamEvent } from './model'
 
 
@@ -15,7 +16,12 @@ export function subscribeDeviceChange(subject: Subject<RxCamEvent>) {
     .subscribe(() => {
       subject.next({
         ...initialEvent,
-        action: Actions.deviceChanged,
+        action: Actions.deviceChange,
       })
     })
+}
+
+export function handleDeviceChange() {
+  resetDeviceMap()
+  return resetDeviceInfo(true)
 }
