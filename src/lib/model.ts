@@ -80,6 +80,7 @@ export const enum Actions {
   deviceChange = 'onDeviceChange',
   deviceRemoved = 'deviceRemoved',
   disconnected = 'disconnected',
+  retryConnect = 'retryConnect',
   ready = 'ready',
   takePhoto = 'takePhoto',
   takePhotoSucc = 'takePhotoSucc',

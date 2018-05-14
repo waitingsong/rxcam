@@ -366,6 +366,12 @@ export class RxCam {
     height: number,
   ): Promise<MediaStreamConstraints> {
 
+    this.subject.next({
+      ...initialEvent,
+      action: Actions.retryConnect,
+      err,
+    })
+
     // [FF, Chrome]
     if (['OverconstrainedError', 'ConstraintNotSatisfiedError'].includes(err.name)) {
       if (typeof this.vconfig.retryRatio === 'number' && this.vconfig.retryRatio > 0) {
