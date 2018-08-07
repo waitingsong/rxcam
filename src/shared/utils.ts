@@ -7,6 +7,7 @@ import {
   open,
   readdir,
   readFile,
+  rmdir,
   stat,
   unlink,
   write,
@@ -30,6 +31,7 @@ export const mkdirAsync = promisify(mkdir)
 export const openAsync = promisify(open)
 export const readFileAsync = promisify(readFile)
 export const readDirAsync = promisify(readdir)
+export const rmdirAsync = promisify(rmdir)
 export const unlinkAsync = promisify(unlink)
 export const writeAsync = promisify(write)
 export const writeFileAsync = promisify(writeFile)
@@ -63,9 +65,9 @@ export function isFileExists(path: string): Promise<boolean> {
 function isDirFileExists(path: string, type: 'DIR' | 'FILE'): Promise<boolean> {
   return path
     ? new Promise(resolve => {
-      stat(path, (err, stats) => (
-        err ? resolve(false) : resolve(type === 'DIR' ? stats.isDirectory() : stats.isFile())
-      ))
+      stat(path, (err, stats) => {
+        err || ! stats ? resolve(false) : resolve(type === 'DIR' ? stats.isDirectory() : stats.isFile())
+      })
     })
     : Promise.resolve(false)
 }
@@ -146,4 +148,40 @@ export interface WriteFileOptions {
 
 export function assertNever(x: never): never {
   throw new Error('Assert Never Unexpected object: ' + x)
+}
+
+/**
+ * Remove directory recursively
+ * @see https://stackoverflow.com/a/42505874/3027390
+ */
+export async function rimraf(path: string): Promise<void> {
+  if (! path) {
+    return
+  }
+  await _rimraf(path)
+  if (await isDirExists(path)) {
+    await rmdirAsync(path)
+  }
+}
+async function _rimraf(path: string): Promise<void> {
+  if (! path) {
+    return
+  }
+
+  if (await isPathAcessible(path)) {
+    if (await isFileExists(path)) {
+      await unlinkAsync(path)
+      return
+    }
+    const entries = await readDirAsync(path)
+
+    if (entries.length) {
+      for (const entry of entries) {
+        await _rimraf(join(path, entry))
+      }
+    }
+    else {
+      await rmdirAsync(path)
+    }
+  }
 }

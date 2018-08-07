@@ -10,6 +10,8 @@ const production = ! process.env.ROLLUP_WATCH
 
 const name = parseName(pkg.name)
 const targetDir = dirname(pkg.main)
+const deps = pkg.dependencies
+const peerDeps = pkg.peerDependencies
 
 const banner = `
 /**
@@ -46,12 +48,22 @@ const globals = {
   'rxjs/websocket': 'rxjs.websocket',
 }
 const external = [
-  'rxjs', 'rxjs/operators', 'rxjs/websocket',
-  'fs', 'path', 'util', 'os',
+  'rxjs', 'rxjs/operators', 'rxjs/websocket', 'rxjs/ajax',
 ]
 const nodeModule = [
   'fs', 'path', 'util', 'os',
 ]
+
+if (deps && Object.keys(deps).length) {
+  for (const depName of Object.keys(deps)) {
+    external.push(depName)
+  }
+}
+if (peerDeps && Object.keys(peerDeps).length) {
+  for (const depName of Object.keys(peerDeps)) {
+    external.push(depName)
+  }
+}
 
 
 const config = [
@@ -75,31 +87,24 @@ const config = [
     ],
   },
 
-  // esm minify
-  {
-    external: production 
-      ? external.concat(nodeModule)
-      : nodeModule,
-    input: pkg.module,
-    plugins: production
-      ? [ uglify(uglifyOpts) ]
-      : [
-        resolve({
-          browser: true,
-          jsnext: true,
-          main: true,
-        }),
-        commonjs(),
-      ],
-    output: {
-      banner,
-      file: parseName(pkg.es2015) + '.min.js',
-      format: 'es',
-      sourcemap: production ? true : false,
-    },
-  },
-
 ]
+
+if (production) {
+  config.push(
+    // esm minify
+    {
+      external: external.concat(nodeModule),
+      input: pkg.module,
+      plugins: [ uglify(uglifyOpts) ],
+      output: {
+        banner,
+        file: parseName(pkg.es2015) + '.min.js',
+        format: 'es',
+        sourcemap: true,
+      },
+    },
+  )
+}
 
 if (pkg.browser) {
   config.push(
@@ -129,10 +134,45 @@ if (pkg.browser) {
   )
 }
 
+if (pkg.bin) {
+  const shebang = `#!/usr/bin/env node\n\n${banner}`
+
+  for (const binPath of Object.values(pkg.bin)) {
+    if (! binPath) {
+      continue
+    }
+    const binSrcPath = binPath.includes('dist/') ? binPath : `./dist/${binPath}`
+
+    config.push({
+      external: external.concat(nodeModule),
+      input: binSrcPath,
+      output: [
+        {
+          file: binPath,
+          banner: shebang,
+          format: 'cjs',
+          globals,
+        },
+      ],
+    })
+  }
+
+}
+
+
+
 // remove pkg.name extension if exists
 function parseName(name) {
-  if (name && name.slice(-3).toLowerCase() === '.js') {
-    return name.slice(0, -3)
+  if (name) {
+    const arr = name.split('.')
+    const len = arr.length
+
+    if (len > 2) {
+      return arr.slice(0, -1).join('.')
+    }
+    else if (len === 2 || len === 1) {
+      return arr[0]
+    }
   }
   return name
 }
