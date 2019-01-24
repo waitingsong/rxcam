@@ -9,7 +9,7 @@ import {
 } from './model'
 
 
-// switch camera by deviceId
+/** Switch camera by deviceId */
 export function switchVideoByDeviceId(
   deviceId: DeviceId,
   video: HTMLVideoElement,
@@ -97,7 +97,7 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
   }
 }
 
-// take image thumbnail, output format jpeg
+/** Take image thumbnail, output format jpeg */
 export function takeThumbnail(image: string | HTMLImageElement, options?: Partial<ImgOpts>): Promise<string> {
   const opts: ImgOpts = options ? { ...inititalThumbnailOpts, ...options } : inititalThumbnailOpts
   const cvs = genCanvas(opts.width, opts.height)
@@ -215,7 +215,7 @@ export function calcRotationParams(width: number, height: number, rotate: number
   return { w, h, angular }
 }
 
-// calclate image resize width/height
+/** Calculate image resize width/height */
 export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxPixel: number = 1600) {
   const ret: Partial<ImgOpts> = {
     width: +imgWidth,

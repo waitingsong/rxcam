@@ -92,12 +92,12 @@ export function getMediaDeviceByIdx(sidx: StreamIdx): MediaDeviceInfo | void {
   }
 }
 
-// validate camera available
+/** Validate camera available */
 export function isVideoAvailable(sidx: StreamIdx) {
   return videoIdxMap.has(sidx)
 }
 
-// get next available mediadevice video index
+/** Get next available mediadevice video index */
 export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
   const nextIdx = curVideoIdx + 1
 
@@ -158,7 +158,7 @@ export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamCon
   return ret
 }
 
-// string/regex match, case insensitive
+/** string/regex match, case insensitive */
 export function searchVideoMediaDeviceIdByLabel(label: MatchLabel): DeviceId | void {
   if (!label) {
     return
