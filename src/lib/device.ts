@@ -1,4 +1,4 @@
-import { assertNever } from '@waiting/shared-core'
+import { assertNever } from '../../node_modules/@waiting/shared-core/dist/lib/asset'
 
 import {
   deviceMap,
