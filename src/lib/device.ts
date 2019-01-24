@@ -1,3 +1,5 @@
+import { assertNever } from '@waiting/shared-core'
+
 import {
   deviceMap,
   mediaDevices,
@@ -11,7 +13,6 @@ import {
   StreamConfigMap,
   StreamIdx,
 } from './model'
-import { assertNever } from './shared'
 
 
 export function invokePermission(): Promise<void> {

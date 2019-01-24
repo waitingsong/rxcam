@@ -1,3 +1,5 @@
+import { assertNever } from '@waiting/shared-core'
+
 import { inititalThumbnailOpts, mediaDevices } from './config'
 import { getMediaDeviceByDeviceId, stopMediaTracks } from './device'
 import {
@@ -5,7 +7,6 @@ import {
   ImgOpts,
   SnapOpts,
 } from './model'
-import { assertNever } from './shared'
 
 
 // switch camera by deviceId
