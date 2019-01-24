@@ -1,3 +1,4 @@
+package-lock.json
 app/**/*.js
 test/**/*.js
 config/**/*.js
@@ -18,11 +19,14 @@ diff-dump/
 .mvn
 .factorypath
 nbproject/
+/www
+.githooks
 
 dbconfig.json
 
 !.vscode/settings.json.example
 !settings/*.example
+
 
 
 # for java
@@ -36,6 +40,13 @@ resource/webserviceConfig.xml
 src/config.properties
 .buildpath
 .tern-project
+
+
+# for gradle
+.gradle
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
 
 
 # for oracle
@@ -54,6 +65,7 @@ nbdist/
 
 *~
 *.sw[mnpcod]
+*.log
 *.tmp
 *.tmp.*
 log.txt
