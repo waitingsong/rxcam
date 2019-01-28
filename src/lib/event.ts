@@ -1,61 +1,28 @@
-import { from, of, Subject } from 'rxjs'
+import { Observable } from 'rxjs'
 import {
-  catchError,
-  delay,
+  debounceTime,
+  mapTo,
   switchMap,
-  throttleTime,
+  tap,
 } from 'rxjs/operators'
 
-import { deviceChange$, initialEvent, videoIdxMap } from './config'
+// import { initialEvent, videoIdxMap } from './config'
+import { videoIdxMap } from './config'
 import { resetDeviceInfo, resetDeviceMap } from './device'
-import { Actions, RxCamEvent } from './model'
+// import { Actions, RxCamEvent } from './model'
 
+/** Return videoIdxMap.size */
+export function handleDeviceChange(
+  deviceChange$: Observable<Event>,
+  deviceChangeDelay: number,
+): Observable<number> {
 
-export function subscribeDeviceChange(subject: Subject<RxCamEvent>, deviceChangeDelay: number) {
-  return deviceChange$
-    .pipe(
-      throttleTime(600),
-      switchMap(() => {
-        return from(
-          handleDeviceChange()
-            .then(() => {
-              const size = videoIdxMap.size
-              return size
-            }),
-        )
-      }),
-      switchMap(count => {
-        return ! count
-          ? of(count)
-          : of(count)
-            .pipe(
-              delay(deviceChangeDelay),
-              switchMap(() => {
-                return from(
-                  handleDeviceChange()
-                    .then(() => videoIdxMap.size),
-                )
-              }))
+  const ret$ = deviceChange$.pipe(
+    debounceTime(deviceChangeDelay > 100 ? deviceChangeDelay : 100),
+    tap(() => resetDeviceMap()),
+    switchMap(() => resetDeviceInfo(true)),
+    mapTo(videoIdxMap.size),
+  )
 
-      }),
-      catchError(err => {
-        subject.next({
-          ...initialEvent,
-          action: Actions.exception,
-          err,
-        })
-        return of(0)
-      }),
-    )
-    .subscribe(mediaCount => {
-      subject.next({
-        ...initialEvent,
-        action: mediaCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
-      })
-    })
-}
-
-export function handleDeviceChange() {
-  resetDeviceMap()
-  return resetDeviceInfo(true)
+  return ret$
 }

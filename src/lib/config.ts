@@ -1,4 +1,4 @@
-import { Observable, Observer } from 'rxjs'
+import { fromEvent } from 'rxjs'
 
 import {
   Actions,
@@ -65,6 +65,4 @@ export const initialEvent: RxCamEvent = {
   action: Actions.noneAvailable,
 }
 
-export const deviceChange$: Observable<Event> = Observable.create((obv: Observer<Event>) => {
-  mediaDevices.ondevicechange = ev => obv.next(ev)
-})
+export const deviceChangeObb = fromEvent(mediaDevices, 'devichange')

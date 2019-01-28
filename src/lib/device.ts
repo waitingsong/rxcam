@@ -1,3 +1,6 @@
+import { concat, defer, from as ofrom, EMPTY, Observable } from 'rxjs'
+import { mergeMap, switchMap, tap, timeout } from 'rxjs/operators'
+
 import { assertNever } from '../../node_modules/@waiting/shared-core/dist/lib/asset'
 
 import {
@@ -15,63 +18,60 @@ import {
 } from './model'
 
 
-export function invokePermission(): Promise<void> {
-  let time: any
-
-  return Promise.race([
-    new Promise<void>((resolve, reject) => {
-      time = setTimeout(() => {
-        reject('findDevice timeout')
-      }, 10000) // @HARDCODED
-    }),
-
-    mediaDevices.getUserMedia({
+export function invokePermission(timeoutValue: number = 10000): Observable<never> {
+  const stream$: Observable<MediaStream> = defer(() => {
+    return mediaDevices.getUserMedia({
       audio: false,
       video: true,
-    }),
-  ])
-    .then(stream => {
+    })
+  })
+
+  return stream$.pipe(
+    switchMap(stream => {
       stream && stopMediaTracks(stream)
-      clearTimeout(time)
-    })
-    .catch(err => {
-      clearTimeout(time)
-      throw err
-    })
+      return EMPTY
+    }),
+    timeout(timeoutValue),
+  )
 }
 
-export function resetDeviceInfo(skipInvokePermission?: boolean): Promise<void> {
+export function resetDeviceInfo(skipInvokePermission?: boolean): Observable<never> {
   // resetDeviceMap()
-  if (skipInvokePermission) {
-    return findDevices()
-      .catch(console.info)
-  }
-  return invokePermission()
-    .then(findDevices)
-    .catch(console.info)
+  const ret$ = skipInvokePermission
+    ? findDevices()
+    : concat(
+      invokePermission(),
+      findDevices(),
+    )
+
+  return ret$.pipe(
+    tap((dev: MediaDeviceInfo) => {
+      if (dev.deviceId) {
+        if (isMediaDeviceExistsInMap(dev.deviceId)) {
+          return
+        }
+
+        if (dev.kind === 'videoinput' || dev.kind === 'audioinput') {
+          deviceMap.set(dev.deviceId, dev)
+        }
+        if (dev.kind === 'videoinput') {
+          const size = getVideoMediaDeviceSize()
+
+          videoIdxMap.set(size, dev.deviceId)
+        }
+      }
+    }),
+    mergeMap(() => EMPTY),
+    timeout(20000),
+  )
 }
 
 
-export function findDevices() {
-  return mediaDevices.enumerateDevices()
-    .then((devicesInfo: MediaDeviceInfo[]) => {
-      for (const dev of devicesInfo) {
-        if (dev.deviceId) {
-          if (isMediaDeviceExistsInMap(dev.deviceId)) {
-            continue
-          }
-
-          if (dev.kind === 'videoinput' || dev.kind === 'audioinput') {
-            deviceMap.set(dev.deviceId, dev)
-          }
-          if (dev.kind === 'videoinput') {
-            const size = getVideoMediaDeviceSize()
-
-            videoIdxMap.set(size, dev.deviceId)
-          }
-        }
-      } // for END
-    })
+export function findDevices(): Observable<MediaDeviceInfo> {
+  const ret$ = defer(() => mediaDevices.enumerateDevices()).pipe(
+    mergeMap(infos => ofrom(infos)),
+  )
+  return ret$
 }
 
 

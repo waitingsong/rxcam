@@ -1,3 +1,6 @@
+import { defer, fromEvent, merge, Observable } from 'rxjs'
+import { mapTo, mergeMap, pluck, take, tap, timeout } from 'rxjs/operators'
+
 import { assertNever } from '../../node_modules/@waiting/shared-core/dist/lib/asset'
 
 import { inititalThumbnailOpts, mediaDevices } from './config'
@@ -14,10 +17,11 @@ export function switchVideoByDeviceId(
   deviceId: DeviceId,
   video: HTMLVideoElement,
   width: number,
-  height: number): Promise<MediaStreamConstraints> {
+  height: number,
+): Observable<MediaStreamConstraints> {
 
   if (! getMediaDeviceByDeviceId(deviceId)) {
-    return Promise.reject(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
+    throw new Error(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
   }
   const vOpts = <MediaTrackConstraints> {
     width: {
@@ -35,16 +39,20 @@ export function switchVideoByDeviceId(
     video: vOpts,
   }
 
-  return mediaDevices.getUserMedia(constrains)
-    .then(stream => {
+  const ret$ = defer(() => mediaDevices.getUserMedia(constrains)).pipe(
+    mergeMap(stream => {
       if (stream && video) {
-        return attachStream(stream, video)
-          .then(() => constrains)
+        return defer(() => attachStream(stream, video)).pipe(
+          mapTo(constrains),
+        )
       }
       else {
-        return Promise.reject('vedio or stream blank during switch camera')
+        throw new Error('vedio or stream blank during switch camera')
       }
-    })
+    }),
+  )
+
+  return ret$
 }
 
 function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<void> {
@@ -97,34 +105,40 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
   }
 }
 
-/** Take image thumbnail, output format jpeg */
-export function takeThumbnail(image: string | HTMLImageElement, options?: Partial<ImgOpts>): Promise<string> {
+/** Take image thumbnail, output DataURL or ObjectURL of resampled jpeg */
+export function takeThumbnail(image: string | HTMLImageElement, options?: Partial<ImgOpts>): Observable<string> {
   const opts: ImgOpts = options ? { ...inititalThumbnailOpts, ...options } : inititalThumbnailOpts
   const cvs = genCanvas(opts.width, opts.height)
   const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
 
   if (typeof image === 'string') {
-    const img = document.createElement('img')
+    const img = new Image()
+    const ret$ = fromEvent<Event>(img, 'load').pipe(
+      pluck<Event, HTMLImageElement>('target'),
+      tap(target => {
+        ctx.drawImage(target, 0, 0, opts.width, opts.height)
+      }),
+      mergeMap(() => exportFromCanvas(cvs, opts)),
+      timeout(10000),
+    )
+    const err$ = <Observable<never>> fromEvent<Error>(img, 'error').pipe(
+      tap((err: Error) => {
+        throw err
+      }),
+    )
 
-    return new Promise((resolve, reject) => {
-      img.src = image
-      img.onload = ev => {
-        ctx.drawImage(<HTMLImageElement> ev.target, 0, 0, opts.width, opts.height)
-
-        return exportFromCanvas(cvs, opts)
-          .then(resolve)
-          .catch(reject)
-      }
-      img.onerror = err => reject(err)
-    })
+    img.src = image
+    return merge(ret$, err$).pipe(
+      take(1),
+    )
   }
-  else if (typeof image === 'object' && typeof image.width !== 'undefined') {
-    ctx.drawImage(<HTMLImageElement> image, 0, 0, opts.width, opts.height)
+  else if (typeof image === 'object' && typeof image.width === 'number') {
+    ctx.drawImage(image, 0, 0, opts.width, opts.height)
 
-    return exportFromCanvas(cvs, opts)
+    return defer(() => exportFromCanvas(cvs, opts))
   }
   else {
-    return Promise.reject('invalid image param')
+    throw new Error('Invalid image param')
   }
 }
 
@@ -142,6 +156,8 @@ export function genCanvas(width: number, height: number): HTMLCanvasElement {
   return cvs
 }
 
+
+/** Get image's DataURL or ObjectURL */
 export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Promise<string> {
   return new Promise<string>((resolve, reject) => {
     switch (options.dataType) {
@@ -157,7 +173,7 @@ export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Prom
         }, 'image/' + options.imageFormat, options.jpegQuality / 100)
 
       default:
-        assertNever(options.dataType)
+        return assertNever(options.dataType)
     }
   })
 }

@@ -1,6 +1,26 @@
-import { Subject, Subscription } from 'rxjs'
+import {
+  concat,
+  merge,
+  of,
+  throwError,
+  timer,
+  Observable,
+  Subject,
+  Subscription,
+} from 'rxjs'
+import {
+  catchError,
+  delay,
+  map,
+  mapTo,
+  mergeMap,
+  share,
+  switchMap,
+  tap,
+} from 'rxjs/operators'
 
 import {
+  deviceChangeObb,
   initialDefaultStreamConfig,
   initialDeviceChangDelay,
   initialEvent,
@@ -13,7 +33,7 @@ import {
   parseMediaOrder,
   resetDeviceInfo,
 } from './device'
-import { subscribeDeviceChange } from './event'
+import { handleDeviceChange } from './event'
 import {
   switchVideoByDeviceId,
   takePhoto,
@@ -41,10 +61,10 @@ import { calcVideoMaxResolution, initUI } from './ui'
 export class RxCam {
   curStreamIdx: StreamIdx
   sconfigMap: StreamConfigMap
-  subject: Subject<RxCamEvent>
-  private disconnectBeforeSwitch = false
+  eventObb: Observable<RxCamEvent>
   private deviceChangeSub: Subscription
-  private subjectSub: Subscription
+  private disconnectBeforeSwitch = false
+  private subject: Subject<RxCamEvent>
 
   constructor(
     public vconfig: VideoConfig,
@@ -54,52 +74,26 @@ export class RxCam {
     public streamConfigs: StreamConfig[],
     public deviceChangeDelay: number,
   ) {
+
     this.curStreamIdx = 0
     this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
     this.subject = new Subject()
-    this.subjectSub = this.innerSubscribe()
-    this.deviceChangeSub = subscribeDeviceChange(this.subject, this.deviceChangeDelay)
+    this.deviceChangeSub = this.processDeviceChange().subscribe()
+    this.eventObb = this.initEvent()
   }
 
-
-  connect(streamIdx?: StreamIdx): Promise<MediaStreamConstraints> {
+  connect(streamIdx?: StreamIdx): Observable<MediaStreamConstraints> {
     this.disconnectBeforeSwitch && this.disconnect()
 
     const sidx = streamIdx ? +streamIdx : 0
     const deviceId = this.getDeviceIdFromMap(sidx)
     const { width, height } = this.getStreamResolution(sidx)
 
-    return switchVideoByDeviceId(deviceId, this.video, width, height)
-      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
-      .catch(err => this.retryConnect(err, deviceId, sidx, width, height))  // catch twice
-      .then(constraints => {
-        const vOpts = <MediaTrackConstraints> constraints.video
-        const w = <number> (<ConstrainLongRange> vOpts.width).ideal
-        const h = <number> (<ConstrainLongRange> vOpts.height).ideal
-
-        this.curStreamIdx = sidx
-        this.updateStreamResolution(sidx, +w, +h)
-
-        this.subject.next({
-          ...initialEvent,
-          action: Actions.connected,
-          payload: { constraints, deviceId, sidx },
-        })
-
-        return constraints
-      })
-      .catch(err => {
-        this.subject.next({
-          ...initialEvent,
-          action: Actions.exception,
-          err,
-        })
-        throw err
-      })
+    return this.swithDevice(deviceId, this.video, sidx, width, height)
   }
 
 
-  connectNext(): Promise<MediaStreamConstraints> {
+  connectNext(): Observable<MediaStreamConstraints> {
     this.disconnectBeforeSwitch && this.disconnect()
 
     const sidx = getNextVideoIdx(this.curStreamIdx)
@@ -107,37 +101,10 @@ export class RxCam {
     if (typeof sidx === 'number') {
       const deviceId = this.getDeviceIdFromMap(sidx)
       const { width, height } = this.getStreamResolution(sidx)
-
-      return switchVideoByDeviceId(deviceId, this.video, width, height)
-        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))
-        .catch(err => this.retryConnect(err, deviceId, sidx, width, height))  // catch twice
-        .then(constraints => {
-          const vOpts = <MediaTrackConstraints> constraints.video
-          const w = <number> (<ConstrainLongRange> vOpts.width).ideal
-          const h = <number> (<ConstrainLongRange> vOpts.height).ideal
-
-          this.curStreamIdx = sidx
-          this.updateStreamResolution(sidx, +w, +h)
-
-          this.subject.next({
-            ...initialEvent,
-            action: Actions.connected,
-            payload: { constraints, deviceId, sidx },
-          })
-
-          return constraints
-        })
-        .catch(err => {
-          this.subject.next({
-            ...initialEvent,
-            action: Actions.exception,
-            err,
-          })
-          throw err
-        })
+      return this.swithDevice(deviceId, this.video, sidx, width, height)
     }
     else {
-      return Promise.reject('next stream not available')
+      return throwError(new Error('Next stream not available'))
     }
   }
 
@@ -168,11 +135,11 @@ export class RxCam {
     }
   }
 
+
   destroy() {
     this.disconnect()
-    this.deviceChangeSub.unsubscribe()
-    this.subjectSub.unsubscribe()
     this.subject.unsubscribe()
+    this.deviceChangeSub.unsubscribe()
   }
 
 
@@ -185,7 +152,7 @@ export class RxCam {
   }
 
 
-  snapshot(snapOpts?: Partial<SnapOpts>): Promise<ImgCaptureRet> {
+  snapshot(snapOpts?: Partial<SnapOpts>): Observable<ImgCaptureRet> {
     const { width, height } = this.getStreamResolution(this.curStreamIdx)
     const sopts: SnapOpts = snapOpts
       ? { ...this.snapOpts, width, height, ...snapOpts }
@@ -196,60 +163,38 @@ export class RxCam {
       sopts.rotate = this.getStreamConfigRotate(this.curStreamIdx)
     }
 
-    if (snapDelay > 0) {
-      return new Promise((resolve, reject) => {
-        setTimeout(() => {
-          takePhoto(this.video, sopts)
-            .then(url => {
-              this.subject.next({
-                ...initialEvent,
-                action: Actions.takePhotoSucc,
-                payload: { sopts, url },
-              })
+    const ret$ = timer(snapDelay > 0 ? snapDelay : 0).pipe(
+      tap(() => this.pauseVideo()),
+      switchMap(() => takePhoto(this.video, sopts)),
+      // tap(url => {
+      //   this.subject.next({
+      //     ...initialEvent,
+      //     action: Actions.takePhotoSucc,
+      //     payload: { sopts, url },
+      //   })
+      // }),
+      delay(300),
+      tap(() => this.playVideo()),
+      map(url => {
+        return <ImgCaptureRet> { url, options: sopts }
+      }),
+      catchError((err: Error) => {
+        this.playVideo()
+        // this.subject.next({
+        //   ...initialEvent,
+        //   action: Actions.takePhotoFail,
+        //   err,
+        //   payload: { sopts },
+        // })
+        throw err
+      }),
+    )
 
-              resolve({ url, options: sopts })
-            })
-            .catch(err => {
-              this.subject.next({
-                ...initialEvent,
-                action: Actions.takePhotoFail,
-                err,
-                payload: { sopts },
-              })
-
-              reject(err)
-            })
-        }, snapDelay)
-      })
-    }
-    else {
-      this.pauseVideo()
-
-      return takePhoto(this.video, sopts)
-        .then(url => {
-          this.playVideo()
-          this.subject.next({
-            ...initialEvent,
-            action: Actions.takePhotoSucc,
-            payload: { sopts, url },
-          })
-          return { url, options: sopts }
-        })
-        .catch(err => {
-          this.playVideo()
-          this.subject.next({
-            ...initialEvent,
-            action: Actions.takePhotoFail,
-            err,
-            payload: { sopts },
-          })
-          throw err
-        })
-    }
+    return ret$
   }
 
 
-  getAllVideoInfo() {
+  getAllVideoInfo(): MediaDeviceInfo[] {
     const ret = <MediaDeviceInfo[]> []
 
     for (const { deviceId } of this.sconfigMap.values()) {
@@ -261,12 +206,13 @@ export class RxCam {
   }
 
 
-  thumbnail(imgURL: string, options: ImgOpts): Promise<string> {
+  /** Take image thumbnail, output DataURL or ObjectURL of resampled jpeg */
+  thumbnail(imgURL: string, options: ImgOpts): Observable<string> {
     return takeThumbnail(imgURL, options)
   }
 
 
-  switchVideo(deviceId: DeviceId, width: number, height: number) {
+  switchVideo(deviceId: DeviceId, width: number, height: number): Observable<MediaStreamConstraints> {
     return switchVideoByDeviceId(deviceId, this.video, width, height)
   }
 
@@ -275,38 +221,28 @@ export class RxCam {
     const sconfig = this.sconfigMap.get(+sidx)
 
     if (! sconfig) {
-      throw new Error(`invalid sidx: ${sidx}`)
+      throw new Error(`getSConfig() sconfig empty invalid sidx: ${sidx}`)
     }
     return sconfig
   }
 
+  // -------------
 
-  private innerSubscribe() {
-    return this.subject.subscribe(ev => {
-      // console.info('inner ev:', ev)
-
-      switch (ev.action) {
-        case Actions.ready:
-          if (this.getAllVideoInfo().length && ! this.isPlaying()) {
-            this.connect(this.curStreamIdx)
-          }
-          break
-
-        case Actions.deviceRemoved:
-          this.sconfigMap.clear()
-          this.disconnect()
-          break
-
-        case Actions.deviceChange:
+  private processDeviceChange() {
+    const ret$ = handleDeviceChange(deviceChangeObb, this.deviceChangeDelay).pipe(
+      tap(mediaCount => {
+        this.subject.next({
+          ...initialEvent,
+          action: mediaCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
+        })
+      }),
+      tap(size => {
+        if (size > 0) { // device changed
           this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
 
           if (this.sconfigMap.size) {
             try {
-              this.getSConfig(this.curStreamIdx)
-              this.subject.next({
-                ...initialEvent,
-                action: Actions.ready,
-              })
+              this.getSConfig(this.curStreamIdx)  // ready
             }
             catch (ex) {
               this.disconnect()
@@ -315,9 +251,93 @@ export class RxCam {
           else {
             this.disconnect()
           }
-          break
-      }
-    })
+        }
+        else {  // device removed
+          this.sconfigMap.clear()
+          this.disconnect()
+        }
+      }),
+      switchMap(size => {
+        if (this.getAllVideoInfo().length && !this.isPlaying()) {
+          return this.connect(this.curStreamIdx).pipe(
+            mapTo(size),
+          )
+        }
+        return of(0)
+      }),
+      catchError((err: Error) => {
+        console.error(err)
+        this.sconfigMap.clear()
+        this.disconnect()
+        this.subject.next({
+          ...initialEvent,
+          action: Actions.exception,
+          err,
+        })
+        return of(0)
+      }),
+      share(),
+    )
+
+    return ret$
+  }
+
+
+
+  private swithDevice(
+    deviceId: DeviceId,
+    video: HTMLVideoElement,
+    sidx: StreamIdx,
+    width: number,
+    height: number,
+   ): Observable<MediaStreamConstraints> {
+
+    const ret$ = switchVideoByDeviceId(deviceId, video, width, height).pipe(
+      catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),
+      catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),  // catch twice
+      tap(constraints => {
+        const vOpts = <MediaTrackConstraints> constraints.video
+        const w = <number> (<ConstrainLongRange> vOpts.width).ideal
+        const h = <number> (<ConstrainLongRange> vOpts.height).ideal
+
+        this.curStreamIdx = sidx
+        this.updateStreamResolution(sidx, +w, +h)
+
+        this.subject.next({
+          ...initialEvent,
+          action: Actions.connected,
+          payload: { constraints, deviceId, sidx },
+        })
+      }),
+      catchError((err: Error) => {
+        this.subject.next({
+          ...initialEvent,
+          action: Actions.exception,
+          err,
+        })
+        throw err
+      }),
+    )
+
+    return ret$
+  }
+
+  private initEvent(): Observable<RxCamEvent> {
+    const innerSubject$ = this.subject.asObservable()
+    const deviceChange$ = this.processDeviceChange().pipe(
+      map(mediaDeviceCount => {
+        return <RxCamEvent> {
+          ...initialEvent,
+          action: mediaDeviceCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
+        }
+      }),
+    )
+    const ret$ = merge(
+      innerSubject$,
+      deviceChange$,
+    )
+
+    return ret$
   }
 
 
@@ -357,14 +377,14 @@ export class RxCam {
     }
   }
 
-  // retry connect for specify type of error
+  /** Retry connect for specify type of error */
   private retryConnect(
     err: Error,
     deviceId: DeviceId,
     sidx: StreamIdx,
     width: number,
     height: number,
-  ): Promise<MediaStreamConstraints> {
+  ): Observable<MediaStreamConstraints> {
 
     this.subject.next({
       ...initialEvent,
@@ -389,24 +409,24 @@ export class RxCam {
         this.video,
         width,
         height,
+      ).pipe(
+        tap(() => {
+          this.disconnectBeforeSwitch = true
+        }),
       )
-      .then(constraint => {
-        this.disconnectBeforeSwitch = true
-        return constraint
-      })
     }
 
     throw err
   }
 
 
-  // retry connect for specify type of error
+  /** Retry connect for specify type of error */
   private retryConnectWithLowerResulution(
     deviceId: DeviceId,
     sidx: StreamIdx,
     width: number,
     height: number,
-  ): Promise<MediaStreamConstraints> {
+  ): Observable<MediaStreamConstraints> {
 
     const ratio = <number> this.vconfig.retryRatio
     const width2 = Math.floor(width * ratio)
@@ -414,11 +434,11 @@ export class RxCam {
     const { minWidth, minHeight } = this.getStreamResolution(sidx)
 
     if (width2 < 240) { // @HARDCODE
-      throw new Error(`retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
+      throw new Error(`Retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
     }
     else if (minWidth && minHeight) {
       if (width2 < minWidth || height2 < minHeight) {
-        throw new Error(`retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
+        throw new Error(`Retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
       }
     }
 
@@ -427,15 +447,16 @@ export class RxCam {
       this.video,
       width2,
       height2,
+    ).pipe(
+      catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width2, height2)),
     )
-    .catch(err => this.retryConnect(err, deviceId, sidx, width2, height2))
   }
 
 
 } // end of class
 
 
-export async function init(options: InitialOpts): Promise<RxCam> {
+export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
   const {
     config,
     ctx,
@@ -468,17 +489,30 @@ export async function init(options: InitialOpts): Promise<RxCam> {
     ? { ...initialSnapOpts, ...snapOpts }
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
-  return resetDeviceInfo(skipInvokePermission)
-    .then(() => new RxCam(
-      vconfig2,
-      sopts,
-      video,
-      defaultStreamConfig2,
-      streamConfigs2,
-      (typeof deviceChangeDelay === 'number' && deviceChangeDelay > 0
-        ? deviceChangeDelay
-        : initialDeviceChangDelay),
-    ))
+  const initArgs = {
+    v: vconfig2,
+    s: sopts,
+    vi: video,
+    dsc: defaultStreamConfig2,
+    st: streamConfigs2,
+    de: (typeof deviceChangeDelay === 'number' && deviceChangeDelay > 0
+      ? deviceChangeDelay
+      : initialDeviceChangDelay),
+  }
+
+  const inst$ = of(initArgs).pipe(
+    mergeMap(opts => {
+      const { v, s, vi, dsc, st, de } = opts
+      return of(new RxCam(v, s, vi, dsc, st, de))
+    }),
+  )
+
+  const ret$ = concat(
+    resetDeviceInfo(skipInvokePermission),
+    inst$,
+  )
+
+  return ret$
 }
 
 
@@ -486,7 +520,7 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
   if (!configs) {
     return
   }
-  if (! Array.isArray(configs)) {
+  if (!Array.isArray(configs)) {
     throw new Error('streamConfigs must be Array')
   }
   if (!configs.length) {
@@ -506,7 +540,7 @@ function validateStreamConfigs(configs?: StreamConfig[]): void {
  */
 function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
   for (const sconfig of sconfigs) {
-    if (! sconfig.width && ! sconfig.height) {
+    if (!sconfig.width && !sconfig.height) {
       sconfig.width = +width
       sconfig.height = +height
     }
