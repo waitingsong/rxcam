@@ -20,7 +20,7 @@
 	<h1>Webcam Test Page</h1>
 	<h3>Demonstrates 400x300 capture &amp; display</h3>
   <div class="preview">
-    <input type=button class="snapshot" value="Take Snapshot" onclick="takePhoto()">
+    <input type=button class="snapshot take" value="Take Snapshot">
     <div id="my_camera"></div>
   </div>
   <div id="result">
@@ -30,6 +30,7 @@
 
   <div id="code">
     <pre>
+    &lt;input type=button class="snapshot take" value="Take Snapshot">
     &lt;script src="require.min.js" data-main="main">&lt;/script>
     &lt;script>
 
@@ -43,25 +44,32 @@
       defaultStreamConfig: {width: 800, height: 600}, // for capture
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect()
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      switchMap(() => {
+        return takePhoto()
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
   }
 
   function takePhoto() {
     if (! cam) {
-      return
+      throw new Error('Camera not ready')
     }
 
-    cam.snapshot()
-      .then(url => {
-        console.log('url.len', url.length)
-        document.querySelector('#snap').src = url
-      })
-      .catch(console.error)
+    return cam.snapshot()
   }
 
 
@@ -81,26 +89,32 @@
       defaultStreamConfig: {width: 800, height: 600},
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect()
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      switchMap(() => {
+        return takePhoto()
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
   }
 
   function takePhoto() {
     if (! cam) {
-      console.log('camera not ready')
-      return
+      throw new Error('Camera not ready')
     }
 
-    cam.snapshot()
-      .then(url => {
-        console.log('url.len', url.length)
-        document.querySelector('#snap').src = url
-      })
-      .catch(console.error)
+    return cam.snapshot()
   }
   </script>
 

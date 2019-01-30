@@ -20,9 +20,9 @@
 	<h1>Webcam Test Page</h1>
 	<h3>Demonstrates toggle multiple cameras</h3>
   <div class="preview">
-    <input type=button class="snapshot" value="Toggle" onclick="toggle()">
-    <input type=button class="snapshot" value="Snapshot first" onclick="takePhoto(0)">
-    <input type=button class="snapshot" value="Snapshot second" onclick="takePhoto(1)">
+    <input type=button class="snapshot toggle" value="Toggle">
+    <input type=button class="snapshot take" value="Snapshot first">
+    <input type=button class="snapshot take" value="Snapshot second">
     <div id="my_camera"></div>
   </div>
   <div id="result">
@@ -44,27 +44,41 @@
       },
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect()
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      map(ev => ev.target),
+      switchMap(elm => {
+        const idx = elm.value.includes('second') ? 1 : 0
+        return takePhoto(idx)
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
+
+    fromEvent(document.querySelectorAll('.toggle'), 'click').pipe(
+      switchMap(() => toggle()),
+    ).subscribe()
   }
 
   function takePhoto(vidx) {
     if (! cam) {
-      console.log('camera not ready')
-      return
+      throw new Error('Camera not ready')
     }
+    const { switchMap } = rxjs.operators
 
-    toggle(vidx)
-      .then(() => cam.snapshot())
-      .then(url => {
-        console.log('url.len', url.length)
-        document.querySelector('#snap').src = url
-      })
-      .catch(console.error)
+    return toggle(vidx).pipe(
+      switchMap(() => cam.snapshot()),
+    )
   }
 
 
@@ -87,33 +101,46 @@
       },
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect()
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      map(ev => ev.target),
+      switchMap(elm => {
+        const idx = elm.value.includes('second') ? 1 : 0
+        return takePhoto(idx)
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
+
+    fromEvent(document.querySelectorAll('.toggle'), 'click').pipe(
+      switchMap(() => toggle()),
+    ).subscribe()
   }
 
   function takePhoto(vidx) {
     if (! cam) {
-      console.log('camera not ready')
-      return
+      throw new Error('Camera not ready')
     }
+    const { switchMap } = rxjs.operators
 
-    toggle(vidx)
-      .then(() => cam.snapshot())
-      .then(url => {
-        console.log('url.len', url.length)
-        document.querySelector('#snap').src = url
-      })
-      .catch(console.error)
+    return toggle(vidx).pipe(
+      switchMap(() => cam.snapshot()),
+    )
   }
 
   function toggle(vidx) {
     return typeof vidx === 'undefined' ? cam.connectNext() : cam.connect(vidx)
   }
-
 
   </script>
 

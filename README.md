@@ -7,7 +7,7 @@ Reactive WebCamera ECMAScript for Mordern Browser
 
 ## Installing
 ```bash
-npm install --save rxcam
+npm install rxcam
 ```
 
 ## Usage

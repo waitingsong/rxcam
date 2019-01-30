@@ -21,7 +21,7 @@
   <h3>Demonstrates Separated StreamConfig</h3>
 
   <div class="preview">
-    <input type=button class="snapshot" value="Snapshot" onclick="takePhoto()">
+    <input type=button class="snapshot take" value="Snapshot">
     <div id="my_camera"></div>
   </div>
   <div id="result">
@@ -32,7 +32,7 @@
   <div id="code">
     <pre>
     &lt;script type="module">
-    import { init } from '../dist/rxcam.esm.min.js'
+    import { RxCamFactory } from '../dist/rxcam.esm.min.js'
 
     const options = {
       ctx: document.querySelector('#my_camera'),
@@ -47,25 +47,29 @@
       ],
     }
 
-    init(options)
+    RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect()
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      switchMap(() => {
+        return takePhoto()
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
     &lt;/script>
     &lt;script>
 
-    async function takePhoto() {
-      try {
-        const url = await cam.snapshot()
-
-        console.log('url len:' + url.length);
-        document.querySelector('img#snap').src = url;
-      }
-      catch (ex) {
-        console.error(ex)
-      }
+    function takePhoto() {
+      return cam.snapshot()
     }
 
     &lt;/script>
@@ -74,39 +78,43 @@
 
   <script src="require.min.js" data-main="main"></script>
   <script>
-    function init(rxcam) {
-      const options = {
-        ctx: document.querySelector('#my_camera'),
-        config: {
-          width: 400,
-          height: 300,
-        },
-        defaultStreamConfig: {width: 800, height: 600}, // for not matched 
-        streamConfigs: [
-          {width: 3000, height: 2250, rotate: 90, matchLabels: ['Scanner']}, 
-          {width: 1600, height: 1200, rotate: 0, matchLabels: ['USB Camera']},
-        ],
-      }
-
-      rxcam.init(options)
-        .then(cam => {
-          window.cam = cam
-          return cam.connect()
-        })
-        .catch(console.error)
-
+  function init(rxcam) {
+    const options = {
+      ctx: document.querySelector('#my_camera'),
+      config: {
+        width: 400,
+        height: 300,
+      },
+      defaultStreamConfig: {width: 800, height: 600}, // for not matched 
+      streamConfigs: [
+        {width: 3000, height: 2250, rotate: 90, matchLabels: ['Scanner']}, 
+        {width: 1600, height: 1200, rotate: 0, matchLabels: ['USB Camera']},
+      ],
     }
-    async function takePhoto() {
-      try {
-        const ret = await cam.snapshot()
 
-        console.log('url len:' + ret.url.length);
-        document.querySelector('img#snap').src = ret.url;
-      }
-      catch (ex) {
-        console.error(ex)
-      }
-    }
+    rxcam.RxCamFactory(options).toPromise()
+      .then(cam => {
+        window.cam = cam
+        return cam.connect().toPromise()
+      })
+      .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      switchMap(() => {
+        return takePhoto()
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
+  }
+
+  function takePhoto() {
+    return cam.snapshot()
+  }
 
   </script>
 

@@ -41,17 +41,16 @@
         height: 300,
       },
     }
-
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
-        return cam.connect(0)
+        return cam.connect().toPromise()
       })
       .catch(console.error)
 
     options.ctx = document.querySelector('#my_camera_1'),
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
-        return cam.connect(1)
+        return cam.connect(1).toPromise()
       })
       .catch(console.error)
   }
@@ -71,17 +70,16 @@
         height: 300,
       },
     }
-
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
-        return cam.connect(0)
+        return cam.connect().toPromise()
       })
       .catch(console.error)
 
     options.ctx = document.querySelector('#my_camera_1'),
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
-        return cam.connect(1)
+        return cam.connect(1).toPromise()
       })
       .catch(console.error)
   }

@@ -21,8 +21,8 @@
   <h3>Demonstrates dynamic capture options</h3>
 
   <div class="preview">
-    <input type=button class="snapshot" value="Snapshot small" onclick="takePhoto('small')">
-    <input type=button class="snapshot" value="Snapshot larget" onclick="takePhoto('large')">
+    <input type=button class="snapshot take" value="Snapshot small">
+    <input type=button class="snapshot take" value="Snapshot large">
     <div id="my_camera"></div>
   </div>
   <div id="result">
@@ -42,17 +42,35 @@
         width: 400,
         height: 300,
       },
+      defaultStreamConfig: {width: 800, height: 600},
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect(0)
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      map(ev => ev.target),
+      switchMap(elm => {
+        const size = elm.value.includes('small') ? 'small' : 'large'
+        return takePhoto(size)
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
   }
 
   function takePhoto(size) {
+    if (! cam) {
+      throw new Error('Camera not ready')
+    }
     const opts = {
       width: 800,
       height: 600,
@@ -63,11 +81,7 @@
       opts.height = 300
     }
 
-    cam.snapshot(opts)
-      .then(url => {
-        console.log('url len:' + url.length);
-        document.querySelector('img#snap').src = url;
-      });
+    return cam.snapshot(opts)
   }
 
     &lt;/script>
@@ -86,15 +100,32 @@
       defaultStreamConfig: {width: 800, height: 600},
     }
 
-    rxcam.init(options)
+    rxcam.RxCamFactory(options).toPromise()
       .then(cam => {
         window.cam = cam
-        return cam.connect(0)
+        return cam.connect().toPromise()
       })
       .catch(console.error)
+
+    const { fromEvent } = rxjs
+    const { switchMap, tap, map } = rxjs.operators
+
+    fromEvent(document.querySelectorAll('.take'), 'click').pipe(
+      map(ev => ev.target),
+      switchMap(elm => {
+        const size = elm.value.includes('small') ? 'small' : 'large'
+        return takePhoto(size)
+      }),
+    ).subscribe(ret => {
+      console.log(ret, ret ? ret.url.length : 0)
+      document.querySelector('#snap').src = ret ? ret.url : ''
+    })
   }
 
   function takePhoto(size) {
+    if (! cam) {
+      throw new Error('Camera not ready')
+    }
     const opts = {
       width: 800,
       height: 600,
@@ -105,11 +136,7 @@
       opts.height = 300
     }
 
-    cam.snapshot(opts)
-      .then(url => {
-        console.log('url len:' + url.length);
-        document.querySelector('img#snap').src = url;
-      });
+    return cam.snapshot(opts)
   }
 
   </script>

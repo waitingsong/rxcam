@@ -8,7 +8,7 @@
 
 ## 安装
 ```bash
-npm install --save rxcam
+npm install rxcam
 ```
 
 ## 使用
