@@ -1,9 +1,11 @@
 import {
   concat,
+  defer,
   merge,
   of,
   throwError,
   timer,
+  EMPTY,
   Observable,
   Subject,
   Subscription,
@@ -15,13 +17,14 @@ import {
   mapTo,
   mergeMap,
   share,
+  shareReplay,
   switchMap,
   tap,
+  timeout,
 } from 'rxjs/operators'
 
 import {
   deviceChangeObb,
-  initialDefaultStreamConfig,
   initialDeviceChangDelay,
   initialEvent,
   initialSnapOpts,
@@ -35,9 +38,11 @@ import {
 } from './device'
 import { handleDeviceChange } from './event'
 import {
-  switchVideoByDeviceId,
   takePhoto,
   takeThumbnail,
+} from './image'
+import {
+  switchVideoByDeviceId,
   unattachStream,
 } from './media'
 import {
@@ -55,7 +60,12 @@ import {
   SConfig,
   VideoConfig,
 } from './model'
-import { calcVideoMaxResolution, initUI } from './ui'
+import {
+  parseDefaultStreamConfig,
+  parseStreamConfigs,
+  validateStreamConfigs,
+} from './parse-options'
+import { calcVideoMaxResolution, initUI, toggleImgPreview } from './ui'
 
 
 export class RxCam {
@@ -67,6 +77,7 @@ export class RxCam {
   private subject: Subject<RxCamEvent>
 
   constructor(
+    public uiContext: HTMLElement,
     public vconfig: VideoConfig,
     public snapOpts: SnapOpts,
     public video: HTMLVideoElement,
@@ -157,15 +168,17 @@ export class RxCam {
     const sopts: SnapOpts = snapOpts
       ? { ...this.snapOpts, width, height, ...snapOpts }
       : { ...this.snapOpts, width, height }
-    const { snapDelay } = sopts
+    const { snapDelay, previewSnapRetSelector, previewSnapRetTime } = sopts
 
     if (typeof sopts.rotate === 'undefined') {
       sopts.rotate = this.getStreamConfigRotate(this.curStreamIdx)
     }
 
-    const ret$ = timer(snapDelay > 0 ? snapDelay : 0).pipe(
+    const snap$ = timer(snapDelay > 0 ? snapDelay : 0).pipe(
       tap(() => this.pauseVideo()),
-      switchMap(() => takePhoto(this.video, sopts)),
+      switchMap(() => {
+        return defer(() => takePhoto(this.video, sopts))
+      }),
       // tap(url => {
       //   this.subject.next({
       //     ...initialEvent,
@@ -173,8 +186,6 @@ export class RxCam {
       //     payload: { sopts, url },
       //   })
       // }),
-      delay(300),
-      tap(() => this.playVideo()),
       map(url => {
         return <ImgCaptureRet> { url, options: sopts }
       }),
@@ -188,8 +199,36 @@ export class RxCam {
         // })
         throw err
       }),
+      timeout(10000 + snapDelay),
+      tap(() => {
+        this.playVideo()
+      }),
+      shareReplay(1),
     )
 
+    const preview$ = snap$.pipe(
+      switchMap(ret => {
+        if (previewSnapRetTime > 0) {
+          const elm = previewSnapRetSelector
+            ? <HTMLImageElement> document.querySelector(previewSnapRetSelector)
+            : <HTMLImageElement> this.uiContext.querySelector(previewSnapRetSelector)
+
+          return toggleImgPreview(elm, ret.url).pipe(
+            delay(previewSnapRetTime),
+            switchMap(() => toggleImgPreview(elm, '')),
+          )
+        }
+        else {
+          return of(null)
+        }
+      }),
+      mergeMap(() => EMPTY),
+    )
+
+    const ret$ = concat(
+      snap$,
+      preview$,
+    )
     return ret$
   }
 
@@ -490,6 +529,7 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
   const initArgs = {
+    c: ctx,
     v: vconfig2,
     s: sopts,
     vi: video,
@@ -502,8 +542,8 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
 
   const inst$ = of(initArgs).pipe(
     mergeMap(opts => {
-      const { v, s, vi, dsc, st, de } = opts
-      return of(new RxCam(v, s, vi, dsc, st, de))
+      const { c, v, s, vi, dsc, st, de } = opts
+      return of(new RxCam(c, v, s, vi, dsc, st, de))
     }),
   )
 
@@ -513,48 +553,4 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
   )
 
   return ret$
-}
-
-
-function validateStreamConfigs(configs?: StreamConfig[]): void {
-  if (!configs) {
-    return
-  }
-  if (!Array.isArray(configs)) {
-    throw new Error('streamConfigs must be Array')
-  }
-  if (!configs.length) {
-    return
-  }
-
-  for (const config of configs) {
-    if (!config) {
-      console.error(configs)
-      throw new Error('config blank, At least one of width, height should has valid value')
-    }
-  }
-}
-
-/**
- * update streamConfig.width/height from vconfig/defaultStreamConfig if not assign
- */
-function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
-  for (const sconfig of sconfigs) {
-    if (!sconfig.width && !sconfig.height) {
-      sconfig.width = +width
-      sconfig.height = +height
-    }
-    if (sconfig.minWidth && sconfig.minWidth > sconfig.width) {
-      sconfig.minWidth = sconfig.width
-      sconfig.minWidth = sconfig.height
-    }
-  }
-
-  return sconfigs
-}
-
-function parseDefaultStreamConfig(vconfig: VideoConfig, defaultStreamConfig?: Partial<BaseStreamConfig>) {
-  const ret: BaseStreamConfig = { ...initialDefaultStreamConfig, ...defaultStreamConfig }
-
-  return ret
 }

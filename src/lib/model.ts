@@ -53,6 +53,16 @@ export interface SnapOpts {
   width: number
   height: number
   jpegQuality: number
+  /**
+   * Selector of image showing snapshot result.
+   * Default '.rxcam-snapshot-preview'
+   */
+  previewSnapRetSelector: string
+  /**
+   * Whether draw snapshoot result iamge above vedio zone.
+   * 0: not draw, Default: 0(msec)
+   */
+  previewSnapRetTime: number
   rotate: number  // angular
   streamIdx: StreamIdx
   snapDelay: number

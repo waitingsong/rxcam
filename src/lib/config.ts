@@ -46,6 +46,8 @@ export const initialSnapOpts: SnapOpts = {
   width: 1024,
   height: 768,
   jpegQuality: 97,
+  previewSnapRetSelector: '.rxcam-snapshot-preview',
+  previewSnapRetTime: 0,
   rotate: 0,
   streamIdx: 0,
   snapDelay: 0,

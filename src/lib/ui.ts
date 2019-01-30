@@ -1,3 +1,6 @@
+import { concat, of, range, Observable } from 'rxjs'
+import { delay, last, map, mapTo, tap } from 'rxjs/operators'
+
 import {
   initialVideoConfig,
 } from './config'
@@ -25,8 +28,61 @@ export function initUI(
     config.fps = 30
   }
 
-  const scaleX = config.width / maxWidth
-  const scaleY = config.height / maxHeight
+  const div = genDOMContainer(config.width, config.height)
+  const video = genDOMVideo(config.width, config.height, maxWidth, maxHeight)
+  const img = genDOMImg(config.width, config.height)
+
+  div.appendChild(video)  // top
+  div.appendChild(img)  // bottom
+  ctx.appendChild(div)
+
+  return [config, video]
+}
+
+
+function genDOMContainer(
+  width: number,
+  height: number,
+): HTMLDivElement {
+  const div = document.createElement('div')
+
+  div.classList.add('rxcam-canvas-container')
+  div.style.width = width + 'px'
+  div.style.height = height + 'px'
+  div.style.overflow = 'hidden'
+  div.style.position = 'relative'
+  return div
+}
+
+
+/** For preivew snapshot result image */
+function genDOMImg(
+  width: number,
+  height: number,
+ ): HTMLImageElement {
+
+  const img = document.createElement('img')
+
+  img.classList.add('rxcam-snapshot-preview')
+  img.style.width = width + 'px'
+  img.style.height = height + 'px'
+  img.style.position = 'absolute'
+  img.style.opacity = '0'
+  img.style.top = '0'
+  img.style.left = '0'
+  return img
+}
+
+
+function genDOMVideo(
+  width: number,
+  height: number,
+  maxWidth: number,
+  maxHeight: number,
+ ): HTMLVideoElement {
+
+  const scaleX = width / maxWidth
+  const scaleY = height / maxHeight
   const video = document.createElement('video')
 
   video.setAttribute('autoplay', 'autoplay')
@@ -44,16 +100,7 @@ export function initUI(
     }
   }
 
-  const div = document.createElement('div')
-
-  div.classList.add('rxcam-canvas-container')
-  div.style.width = config.width + 'px'
-  div.style.height = config.height + 'px'
-  div.style.overflow = 'hidden'
-  div.appendChild(video)
-  ctx.appendChild(div)
-
-  return [config, video]
+  return video
 }
 
 export function calcVideoMaxResolution(sconfigs: StreamConfig[]): [number, number] {
@@ -68,4 +115,66 @@ export function calcVideoMaxResolution(sconfigs: StreamConfig[]): [number, numbe
   }
 
   return [width, height]
+}
+
+
+export function toggleImgPreview(element: HTMLImageElement, data: string): Observable<null> {
+  return data ? showImgPreivew(element, data) : resetImgPreivew(element, '')
+}
+
+function showImgPreivew(element: HTMLImageElement, data: string): Observable<null> {
+  const range$ = range(1, 10).pipe(
+    delay(20),
+    map(val => {
+      const op = val / 10
+      return op < 1 ? op : 1
+    }),
+    tap(val => {
+      element.style.opacity = `${val}`
+    }),
+  )
+  const ui$ = of(data).pipe(
+    tap(url => {
+      element.src = url
+    }),
+  )
+
+  const ret$ = concat(
+    ui$,
+    range$,
+  ).pipe(
+    last(),
+    mapTo(null),
+  )
+
+  return ret$
+}
+
+function resetImgPreivew(element: HTMLImageElement, data: string): Observable<null> {
+  const range$ = range(1, 10).pipe(
+    delay(10),
+    map(val => {
+      const op = 1 - val / 10
+      return op > 0 ? op : 0
+    }),
+    tap(val => {
+      element.style.opacity = `${val}`
+    }),
+    last(),
+  )
+  const ui$ = of(data).pipe(
+    tap(url => {
+      element.src = url
+    }),
+  )
+
+  const ret$ = concat(
+    range$,
+    ui$,
+  ).pipe(
+    last(),
+    mapTo(null),
+  )
+
+  return ret$
 }
