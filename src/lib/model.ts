@@ -35,7 +35,7 @@ export interface BaseStreamConfig {
   height: number
   minWidth?: number,  // for retry connect
   minHeight?: number, // for retry connect
-  rotate?: number // override by SnapOpt.rotate
+  rotate?: number | null // override by SnapOpt.rotate
 }
 export interface StreamConfig extends BaseStreamConfig {
   matchLabels?: MatchLabel[]
@@ -63,7 +63,7 @@ export interface SnapOpts {
    * 0: not draw, Default: 0(msec)
    */
   previewSnapRetTime: number
-  rotate: number  // angular
+  rotate: number | null  // angular
   streamIdx: StreamIdx
   snapDelay: number
   switchDelay: number

@@ -36,7 +36,7 @@ export const initialDefaultStreamConfig: BaseStreamConfig = {
   height: 600,
   minWidth: 640,
   minHeight: 480,
-  rotate: 0,
+  rotate: null,
 }
 
 export const initialSnapOpts: SnapOpts = {
@@ -48,7 +48,7 @@ export const initialSnapOpts: SnapOpts = {
   jpegQuality: 97,
   previewSnapRetSelector: '.rxcam-snapshot-preview',
   previewSnapRetTime: 0,
-  rotate: 0,
+  rotate: null,
   streamIdx: 0,
   snapDelay: 0,
   switchDelay: 0,

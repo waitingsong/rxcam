@@ -170,7 +170,7 @@ export class RxCam {
       : { ...this.snapOpts, width, height }
     const { snapDelay, previewSnapRetSelector, previewSnapRetTime } = sopts
 
-    if (typeof sopts.rotate === 'undefined') {
+    if (typeof sopts.rotate === 'undefined' || sopts.rotate === null) {
       sopts.rotate = this.getStreamConfigRotate(this.curStreamIdx)
     }
 

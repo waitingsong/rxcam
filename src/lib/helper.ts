@@ -1,5 +1,5 @@
 import {
-  ImgOpts,
+  ImgOpts, SnapOpts,
 } from './model'
 
 
@@ -33,10 +33,15 @@ export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxP
 }
 
 
-export function calcRotationParams(width: number, height: number, rotate: number) {
+export function calcRotationParams(
+  width: SnapOpts['width'],
+  height: SnapOpts['height'],
+  rotate: SnapOpts['rotate'],
+) {
+
   let w = +width
   let h = +height
-  let angular = rotate % 360
+  let angular = (rotate ? rotate : 0) % 360
 
   if (angular === 0) {
     return { w, h, angular }
