@@ -5,7 +5,7 @@ export type MatchLabel = string | RegExp
 export type DeviceLabelOrder = MatchLabel[]
 export type Guid = number
 export type ImgDataType = 'dataURL' | 'dataurl' | 'objectURL' | 'objecturl'
-export type ImgFormat = 'jpeg' | 'png'
+export type ImgMimeType = 'jpeg' | 'png'
 export type StreamIdx = number // the track index of camera output. 0 for primaray/master, 1 for secondary/slave
 export type VideoIdx = number // the video track index of camera output. 0 for primaray/master, 1 for secondary/slave
 
@@ -48,7 +48,7 @@ export type StreamConfigMap = Map<StreamIdx, SConfig>
 
 export interface SnapOpts {
   dataType: ImgDataType
-  imageFormat: ImgFormat
+  imageFormat: ImgMimeType
   flipHoriz: boolean
   width: number
   height: number
@@ -73,7 +73,7 @@ export interface ImgOpts {
   dataType: ImgDataType
   width: number
   height: number
-  imageFormat: ImgFormat
+  imageFormat: ImgMimeType
   jpegQuality: number // 0-100 for output
 }
 
