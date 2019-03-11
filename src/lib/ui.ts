@@ -1,8 +1,8 @@
-import { concat, of, range, Observable } from 'rxjs'
-import { delay, last, map, mapTo, tap } from 'rxjs/operators'
+import { concat, forkJoin, interval, of, Observable } from 'rxjs'
+import { delay, last, map, mapTo, shareReplay, skip, take, tap } from 'rxjs/operators'
 
 import {
-  initialVideoConfig,
+  blankImgURL, initialVideoConfig,
 } from './config'
 import {
   StreamConfig,
@@ -55,7 +55,7 @@ function genDOMContainer(
 }
 
 
-/** For preivew snapshot result image */
+/** For preview snapshot result image */
 function genDOMImg(
   width: number,
   height: number,
@@ -64,12 +64,15 @@ function genDOMImg(
   const img = document.createElement('img')
 
   img.classList.add('rxcam-snapshot-preview')
-  img.style.width = width + 'px'
-  img.style.height = height + 'px'
+  // img.style.width = width + 'px'
+  // img.style.height = height + 'px'
+  img.style.maxWidth = width + 'px'
+  img.style.maxHeight = height + 'px'
   img.style.position = 'absolute'
   img.style.opacity = '0'
   img.style.top = '0'
   img.style.left = '0'
+  img.src = blankImgURL
   return img
 }
 
@@ -89,8 +92,8 @@ function genDOMVideo(
   video.width = maxWidth
   video.height = maxHeight
   if (video.style) {
-    video.style.width = '' + maxWidth + 'px'
-    video.style.height = '' + maxHeight + 'px'
+    video.style.width = maxWidth + 'px'
+    video.style.height = maxHeight + 'px'
   }
 
   if (scaleX !== 1.01 || scaleY !== 1.01) {
@@ -118,13 +121,47 @@ export function calcVideoMaxResolution(sconfigs: StreamConfig[]): [number, numbe
 }
 
 
-export function toggleImgPreview(element: HTMLImageElement, data: string): Observable<null> {
-  return data ? showImgPreivew(element, data) : resetImgPreivew(element, '')
+export function toggleImgPreview(
+  element: HTMLImageElement,
+  data: string,
+  video: HTMLVideoElement,
+  ): Observable<null> {
+
+  return data
+    ? showImgPreivew(element, data, video)
+    : resetImgPreivew(element, blankImgURL, video)
 }
 
-function showImgPreivew(element: HTMLImageElement, data: string): Observable<null> {
-  const range$ = range(1, 10).pipe(
-    delay(20),
+function showImgPreivew(
+  element: HTMLImageElement,
+  data: string,
+  video: HTMLVideoElement,
+): Observable<null> {
+
+  const intv = 20
+  const range$ = interval(intv).pipe(
+    skip(1),
+    take(10), // 1-10
+    shareReplay(1),
+  )
+
+  const video$ = range$.pipe(
+    map(val => {
+      const op = 1 - val / 10
+      return op > 0 ? op : 0
+    }),
+    tap(val => {
+      video.style.opacity = `${val}`
+    }),
+  )
+
+  const imgSrc$ = of(data).pipe(
+    tap(url => {
+      element.src = url
+    }),
+  )
+  const imgOpacity$ = range$.pipe(
+    delay(intv * 3),
     map(val => {
       const op = val / 10
       return op < 1 ? op : 1
@@ -133,16 +170,16 @@ function showImgPreivew(element: HTMLImageElement, data: string): Observable<nul
       element.style.opacity = `${val}`
     }),
   )
-  const ui$ = of(data).pipe(
-    tap(url => {
-      element.src = url
-    }),
+
+  const img$ = concat(
+    imgSrc$,
+    imgOpacity$,
+  ).pipe(
+    last(),
+    mapTo(null),
   )
 
-  const ret$ = concat(
-    ui$,
-    range$,
-  ).pipe(
+  const ret$ = forkJoin(video$, img$).pipe(
     last(),
     mapTo(null),
   )
@@ -150,9 +187,37 @@ function showImgPreivew(element: HTMLImageElement, data: string): Observable<nul
   return ret$
 }
 
-function resetImgPreivew(element: HTMLImageElement, data: string): Observable<null> {
-  const range$ = range(1, 10).pipe(
-    delay(10),
+
+function resetImgPreivew(
+  element: HTMLImageElement,
+  data: string,
+  video: HTMLVideoElement,
+): Observable<null> {
+
+  const intv = 20
+  const range$ = interval(intv).pipe(
+    skip(1),
+    take(10), // 1-10
+    shareReplay(1),
+  )
+
+  const video$ = range$.pipe(
+    delay(intv * 4),
+    map(val => {
+      const op = val / 10
+      return op < 1 ? op : 1
+    }),
+    tap(val => {
+      video.style.opacity = `${val}`
+    }),
+  )
+
+  const imgSrc$ = of(data).pipe(
+    tap(url => {
+      element.src = url
+    }),
+  )
+  const imgOpacity$ = range$.pipe(
     map(val => {
       const op = 1 - val / 10
       return op > 0 ? op : 0
@@ -162,16 +227,16 @@ function resetImgPreivew(element: HTMLImageElement, data: string): Observable<nu
     }),
     last(),
   )
-  const ui$ = of(data).pipe(
-    tap(url => {
-      element.src = url
-    }),
+
+  const img$ = concat(
+    imgOpacity$,
+    imgSrc$,
+  ).pipe(
+    last(),
+    mapTo(null),
   )
 
-  const ret$ = concat(
-    range$,
-    ui$,
-  ).pipe(
+  const ret$ = forkJoin(img$, video$).pipe(
     last(),
     mapTo(null),
   )

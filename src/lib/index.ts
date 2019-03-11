@@ -213,9 +213,9 @@ export class RxCam {
             ? <HTMLImageElement> document.querySelector(previewSnapRetSelector)
             : <HTMLImageElement> this.uiContext.querySelector(previewSnapRetSelector)
 
-          return toggleImgPreview(elm, ret.url).pipe(
+          return toggleImgPreview(elm, ret.url, this.video).pipe(
             delay(previewSnapRetTime),
-            switchMap(() => toggleImgPreview(elm, '')),
+            switchMap(() => toggleImgPreview(elm, '', this.video)),
           )
         }
         else {

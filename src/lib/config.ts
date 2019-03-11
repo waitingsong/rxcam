@@ -68,3 +68,5 @@ export const initialEvent: RxCamEvent = {
 }
 
 export const deviceChangeObb = fromEvent(mediaDevices, 'devichange')
+
+export const blankImgURL = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAHoAwAALAAAAAABAAEAAAICRAEAOw=='
