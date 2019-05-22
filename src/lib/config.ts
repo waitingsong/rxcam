@@ -12,9 +12,11 @@ import {
 } from './model'
 
 
-// https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-if (! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
-  throw new Error('mediaDevices.getUserMedia not support')
+if (location && location.protocol && location.protocol.toLowerCase().indexOf('https') === 0) {
+  // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error('Either navigator.mediaDevices or mediaDevices.getUserMedia undefined!')
+  }
 }
 
 export const mediaDevices: MediaDevices = navigator.mediaDevices
