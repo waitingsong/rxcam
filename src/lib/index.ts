@@ -336,8 +336,8 @@ export class RxCam {
       catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),  // catch twice
       tap(constraints => {
         const vOpts = <MediaTrackConstraints> constraints.video
-        const w = <number> (<ConstrainLongRange> vOpts.width).ideal
-        const h = <number> (<ConstrainLongRange> vOpts.height).ideal
+        const w = <number> (<ConstrainULongRange> vOpts.width).ideal
+        const h = <number> (<ConstrainULongRange> vOpts.height).ideal
 
         this.curStreamIdx = sidx
         this.updateStreamResolution(sidx, +w, +h)
