@@ -1,29 +1,32 @@
 {
-  "name": "npm-base",
+  "name": "rxcam",
   "author": "waiting",
-  "version": "0.0.1",
-  "description": "npm boilerplate",
+  "version": "2.3.1",
+  "description": "Reactive webcam ECMAScript",
   "keywords": [
-    "种子项目",
-    "typescript",
-    "ts"
+    "camera",
+    "rxjs",
+    "webcam",
+    "getUserMedia",
+    "mediaDevices"
   ],
   "bin": {},
-  "browser": "",
-  "es2015": "",
+  "browser": "./dist/rxcam.esm.js",
+  "es2015": "./dist/rxcam.esm.js",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/waitingsong/npm-base/issues"
+    "url": "https://github.com/waitingsong/rxcam/issues"
   },
-  "homepage": "https://github.com/waitingsong/npm-base#readme",
+  "homepage": "https://github.com/waitingsong/rxcam#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waitingsong/npm-base.git"
+    "url": "git+https://github.com/waitingsong/rxcam.git"
   },
   "license": "MIT",
   "dependencies": {
+    "@waiting/shared-core": "^1.9.1",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {
