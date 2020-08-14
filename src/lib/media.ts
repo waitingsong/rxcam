@@ -17,7 +17,7 @@ export function switchVideoByDeviceId(
   if (! getMediaDeviceByDeviceId(deviceId)) {
     throw new Error(`getMediaDeviceByDeviceId("${deviceId}") return empty`)
   }
-  const vOpts = <MediaTrackConstraints> {
+  const vOpts = {
     width: {
       ideal: Math.floor(width),
       min: Math.floor(width * 0.9),
@@ -27,7 +27,7 @@ export function switchVideoByDeviceId(
       min: Math.floor(height * 0.9),
     },
     deviceId: { exact: deviceId },
-  }
+  } as MediaTrackConstraints
   const constrains: MediaStreamConstraints = {
     audio: false,
     video: vOpts,
@@ -35,6 +35,7 @@ export function switchVideoByDeviceId(
 
   const ret$ = defer(() => mediaDevices.getUserMedia(constrains)).pipe(
     mergeMap((stream) => {
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       if (stream && video) {
         return defer(() => attachStream(stream, video)).pipe(
           mapTo(constrains),
@@ -51,8 +52,9 @@ export function switchVideoByDeviceId(
 
 function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<void> {
   return new Promise((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (stream && video) {
-      video.onloadeddata = ev => resolve()
+      video.onloadeddata = _ => resolve()
       video.srcObject = stream
     }
     else {
@@ -61,9 +63,9 @@ function attachStream(stream: MediaStream, video: HTMLVideoElement): Promise<voi
   })
 }
 
-export function unattachStream(video: HTMLVideoElement) {
-  video.pause && video.pause()
-  stopMediaTracks(<MediaStream> video.srcObject)
+export function unattachStream(video: HTMLVideoElement): void {
+  video.pause()
+  stopMediaTracks(video.srcObject as MediaStream)
   video.srcObject = null
 }
 

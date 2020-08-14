@@ -1,17 +1,20 @@
+/* eslint-disable id-length */
 import { ImgOpts, SnapOpts } from './model'
 
 
 /** Calculate image resize width/height */
-export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxPixel = 1600) {
+export function calcImgThumbResolution(
+  imgWidth: number,
+  imgHeight: number,
+  maxPixel = 1600,
+): Partial<ImgOpts> {
+
   const ret: Partial<ImgOpts> = {
     width: +imgWidth,
     height: +imgHeight,
   }
 
-  if (! maxPixel) {
-    return ret
-  }
-  else {
+  if (maxPixel) {
     if (imgWidth <= maxPixel && imgHeight <= maxPixel) {
       return ret
     }
@@ -26,6 +29,9 @@ export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxP
       ret.height = maxPixel
     }
   }
+  else {
+    return ret
+  }
 
   return ret
 }
@@ -35,7 +41,7 @@ export function calcRotationParams(
   width: SnapOpts['width'],
   height: SnapOpts['height'],
   rotate: SnapOpts['rotate'],
-) {
+): {w: number, h: number, angular: number} {
 
   let w = +width
   let h = +height
@@ -60,3 +66,4 @@ export function calcRotationParams(
 
   return { w, h, angular }
 }
+

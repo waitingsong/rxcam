@@ -23,11 +23,12 @@ if (typeof navigator.mediaDevices === 'undefined') {
 if (typeof navigator.mediaDevices.getUserMedia === 'undefined') {
   navigator.mediaDevices.getUserMedia = (constraints) => {
     // First get ahold of the legacy getUserMedia, if present
-    // @ts-expect-error
-    const getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { getUserMedia } = navigator
 
     // Some browsers just don't implement it - return a rejected promise with an error
     // to keep a consistent interface
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (! getUserMedia) {
       return Promise.reject(new Error('getUserMedia is not implemented in this browser'))
     }
@@ -40,12 +41,12 @@ if (typeof navigator.mediaDevices.getUserMedia === 'undefined') {
   }
 }
 
-if (location && location.protocol && location.protocol.toLowerCase().startsWith('https')) {
-  // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-  if (! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
-    throw new Error('Either navigator.mediaDevices or mediaDevices.getUserMedia undefined!')
-  }
-}
+// if (location && location.protocol && location.protocol.toLowerCase().startsWith('https')) {
+//   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
+//   if (! navigator.mediaDevices || ! navigator.mediaDevices.getUserMedia) {
+//     throw new Error('Either navigator.mediaDevices or mediaDevices.getUserMedia undefined!')
+//   }
+// }
 
 export const { mediaDevices } = navigator
 export const deviceMap = new Map<DeviceId, MediaDeviceInfo>()

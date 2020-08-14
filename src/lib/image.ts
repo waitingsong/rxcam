@@ -13,7 +13,7 @@ import {
 
 export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<string> {
   const cvs = genCanvas(sopts.width, sopts.height)
-  const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
+  const ctx = cvs.getContext('2d') as CanvasRenderingContext2D
 
   // flip canvas horizontally if desired
   if (sopts.flipHoriz) {
@@ -21,34 +21,35 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
     ctx.scale(-1, 1)
   }
 
-  if (video) {
-    const cvs2 = document.createElement('canvas')
-    const { w, h, angular } = calcRotationParams(cvs.width, cvs.height, sopts.rotate)
+  const cvs2 = document.createElement('canvas')
+  // eslint-disable-next-line id-length
+  const { w, h, angular } = calcRotationParams(cvs.width, cvs.height, sopts.rotate)
 
-    ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
-    if (angular !== 0) {
-      cvs2.width = w
-      cvs2.height = h
+  ctx.drawImage(video, 0, 0, sopts.width, sopts.height)
+  if (angular !== 0) {
+    cvs2.width = w
+    cvs2.height = h
 
-      drawRotated(cvs2, cvs, angular) // rotate image
-      cvs.width = cvs.height = 0
+    drawRotated(cvs2, cvs, angular) // rotate image
+    cvs.width = 0
+    cvs.height = 0
 
-      return exportFromCanvas(cvs2, sopts)
-    }
-
-    return exportFromCanvas(cvs, sopts)
+    return exportFromCanvas(cvs2, sopts)
   }
-  else {
-    throw new Error('video empty')
-  }
+
+  return exportFromCanvas(cvs, sopts)
 }
 
 
 /** Take image thumbnail, output DataURL or ObjectURL of resampled jpeg */
-export function takeThumbnail(image: string | HTMLImageElement, options?: Partial<ImgOpts>): Observable<string> {
+export function takeThumbnail(
+  image: string | HTMLImageElement,
+  options?: Partial<ImgOpts>,
+): Observable<string> {
+
   const opts: ImgOpts = options ? { ...inititalThumbnailOpts, ...options } : inititalThumbnailOpts
   const cvs = genCanvas(opts.width, opts.height)
-  const ctx = <CanvasRenderingContext2D> cvs.getContext('2d')
+  const ctx = cvs.getContext('2d') as CanvasRenderingContext2D
 
   if (typeof image === 'string') {
     const img = new Image()
@@ -60,11 +61,11 @@ export function takeThumbnail(image: string | HTMLImageElement, options?: Partia
       mergeMap(() => exportFromCanvas(cvs, opts)),
       timeout(10000),
     )
-    const err$ = <Observable<never>> fromEvent<Error>(img, 'error').pipe(
+    const err$ = fromEvent<Error>(img, 'error').pipe(
       tap((err: Error) => {
         throw err
       }),
-    )
+    ) as Observable<never>
 
     img.src = image
     return merge(ret$, err$).pipe(
@@ -99,17 +100,17 @@ export function genCanvas(width: number, height: number): HTMLCanvasElement {
 
 /** Get image's DataURL or ObjectURL */
 export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Promise<string> {
-  return new Promise<string>((resolve, reject) => {
+  return new Promise<string>((done) => {
     switch (options.dataType) {
       case 'dataURL':
       case 'dataurl':
-        return resolve(cvs.toDataURL('image/' + options.imageFormat, options.jpegQuality / 100))
+        return done(cvs.toDataURL('image/' + options.imageFormat, options.jpegQuality / 100))
 
       case 'objectURL':
       case 'objecturl':
         return cvs.toBlob((blob) => {
           // need call URL.revokeObjectURL(ourl) later
-          resolve(blob ? URL.createObjectURL(blob) : '')
+          done(blob ? URL.createObjectURL(blob) : '')
         }, 'image/' + options.imageFormat, options.jpegQuality / 100)
 
       default:
@@ -145,3 +146,4 @@ function drawRotated(cvs: HTMLCanvasElement, image: HTMLCanvasElement | HTMLImag
   // we’re done with the rotating so restore the unrotated context
   ctx.restore()
 }
+

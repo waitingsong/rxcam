@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
 import {
   concat,
   defer,
@@ -82,6 +83,7 @@ export class RxCam {
 
   private readonly subject: Subject<RxCamEvent>
 
+  // eslint-disable-next-line max-params
   constructor(
     public uiContext: HTMLElement,
     public vconfig: VideoConfig,
@@ -126,6 +128,7 @@ export class RxCam {
   }
 
   isPlaying(): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     return !! (this.video && this.video.played.length)
   }
 
@@ -135,7 +138,7 @@ export class RxCam {
   }
 
 
-  disconnect() {
+  disconnect(): void {
     try {
       unattachStream(this.video)
       this.subject.next({
@@ -147,25 +150,25 @@ export class RxCam {
       this.subject.next({
         ...initialEvent,
         action: Actions.exception,
-        err: ex,
+        err: ex as Error,
       })
     }
   }
 
 
-  destroy() {
+  destroy(): void {
     this.disconnect()
     this.subject.unsubscribe()
     this.deviceChangeSub.unsubscribe()
   }
 
 
-  pauseVideo() {
-    this.video.pause()
+  pauseVideo(): void {
+    void this.video.pause()
   }
 
-  playVideo() {
-    this.video.play()
+  playVideo(): void {
+    void this.video.play()
   }
 
 
@@ -195,7 +198,7 @@ export class RxCam {
       //   })
       // }),
       map((url) => {
-        return <ImgCaptureRet> { url, options: sopts }
+        return { url, options: sopts } as ImgCaptureRet
       }),
       catchError((err: Error) => {
         this.playVideo()
@@ -218,8 +221,8 @@ export class RxCam {
       switchMap((ret) => {
         if (previewSnapRetTime > 0) {
           const elm = previewSnapRetSelector
-            ? <HTMLImageElement> document.querySelector(previewSnapRetSelector)
-            : <HTMLImageElement> this.uiContext.querySelector(previewSnapRetSelector)
+            ? document.querySelector(previewSnapRetSelector) as HTMLImageElement
+            : this.uiContext.querySelector(previewSnapRetSelector) as HTMLImageElement
 
           return toggleImgPreview(elm, ret.url, this.video).pipe(
             delay(previewSnapRetTime),
@@ -242,7 +245,7 @@ export class RxCam {
 
 
   getAllVideoInfo(): MediaDeviceInfo[] {
-    const ret = <MediaDeviceInfo[]> []
+    const ret = [] as MediaDeviceInfo[]
 
     for (const { deviceId } of this.sconfigMap.values()) {
       const info = getMediaDeviceInfo(deviceId)
@@ -343,12 +346,12 @@ export class RxCam {
       catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),
       catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)), // catch twice
       tap((constraints) => {
-        const vOpts = <MediaTrackConstraints> constraints.video
-        const w = <number> (<ConstrainULongRange> vOpts.width).ideal
-        const h = <number> (<ConstrainULongRange> vOpts.height).ideal
+        const vOpts = constraints.video as MediaTrackConstraints
+        const wi = (vOpts.width as ConstrainULongRange).ideal as number
+        const hi = (vOpts.height as ConstrainULongRange).ideal as number
 
         this.curStreamIdx = sidx
-        this.updateStreamResolution(sidx, +w, +h)
+        this.updateStreamResolution(sidx, +wi, +hi)
 
         this.subject.next({
           ...initialEvent,
@@ -373,10 +376,10 @@ export class RxCam {
     const innerSubject$ = this.subject.asObservable()
     const deviceChange$ = this.processDeviceChange().pipe(
       map((mediaDeviceCount) => {
-        return <RxCamEvent> {
+        return {
           ...initialEvent,
           action: mediaDeviceCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
-        }
+        } as RxCamEvent
       }),
     )
     const ret$ = merge(
@@ -418,7 +421,7 @@ export class RxCam {
   private updateStreamResolution(sidx: StreamIdx, width: number, height: number) {
     const sconfig = this.getSConfig(sidx)
 
-    if (sconfig && sconfig.width !== width) {
+    if (sconfig.width !== width) {
       sconfig.width = +width
       sconfig.height = +height
     }
@@ -475,12 +478,13 @@ export class RxCam {
     height: number,
   ): Observable<MediaStreamConstraints> {
 
-    const ratio = <number> this.vconfig.retryRatio
+    const ratio = this.vconfig.retryRatio as number
     const width2 = Math.floor(width * ratio)
     const height2 = Math.floor(height * ratio)
     const { minWidth, minHeight } = this.getStreamResolution(sidx)
 
     if (width2 < 240) { // @HARDCODE
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
       throw new Error(`Retry connect(${sidx}) fail with minimum config w/h: ${minWidth}/${minHeight}`)
     }
     else if (minWidth && minHeight) {
@@ -521,6 +525,7 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
   let maxWidth = vconfig.width
   let maxHeight = vconfig.height
 
+  // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
   if (streamConfigs && streamConfigs.length) {
     streamConfigs2 = parseStreamConfigs(streamConfigs, defaultStreamConfig2.width, defaultStreamConfig2.height)
     const [maxw, maxh] = calcVideoMaxResolution(streamConfigs2)
@@ -537,9 +542,9 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
     : { ...initialSnapOpts, width: vconfig.width, height: vconfig.height }
 
   const initArgs = {
-    c: ctx,
+    ctx2: ctx,
     v: vconfig2,
-    s: sopts,
+    sopts2: sopts,
     vi: video,
     dsc: defaultStreamConfig2,
     st: streamConfigs2,
@@ -551,9 +556,9 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
   const inst$ = of(initArgs).pipe(
     mergeMap((opts) => {
       const {
-        c, v, s, vi, dsc, st, de,
+        ctx2, v, sopts2, vi, dsc, st, de,
       } = opts
-      return of(new RxCam(c, v, s, vi, dsc, st, de))
+      return of(new RxCam(ctx2, v, sopts2, vi, dsc, st, de))
     }),
   )
 
@@ -564,3 +569,4 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
 
   return ret$
 }
+

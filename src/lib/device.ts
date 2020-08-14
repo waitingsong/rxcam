@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
 import { concat, defer, from as ofrom, EMPTY, Observable } from 'rxjs'
 import { mergeMap, switchMap, tap, timeout } from 'rxjs/operators'
 
@@ -28,7 +29,7 @@ export function invokePermission(timeoutValue = 10000): Observable<never> {
 
   return stream$.pipe(
     switchMap((stream) => {
-      stream && stopMediaTracks(stream)
+      stopMediaTracks(stream)
       return EMPTY
     }),
     timeout(timeoutValue),
@@ -80,11 +81,11 @@ export function isMediaDeviceExistsInMap(deviceId: DeviceId): boolean {
 }
 
 // get a MediaStream
-export function getMediaDeviceByDeviceId(deviceId: DeviceId) {
+export function getMediaDeviceByDeviceId(deviceId: DeviceId): MediaDeviceInfo | undefined {
   return deviceMap.get(deviceId)
 }
 
-export function getMediaDeviceByIdx(sidx: StreamIdx): MediaDeviceInfo | void {
+export function getMediaDeviceByIdx(sidx: StreamIdx): MediaDeviceInfo | undefined {
   const deviceId = videoIdxMap.get(sidx)
 
   if (deviceId) {
@@ -93,7 +94,7 @@ export function getMediaDeviceByIdx(sidx: StreamIdx): MediaDeviceInfo | void {
 }
 
 /** Validate camera available */
-export function isVideoAvailable(sidx: StreamIdx) {
+export function isVideoAvailable(sidx: StreamIdx): boolean {
   return videoIdxMap.has(sidx)
 }
 
@@ -115,8 +116,12 @@ export function getNextVideoIdx(curVideoIdx: StreamIdx): StreamIdx | void {
 }
 
 
-export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamConfigs: StreamConfig[]): StreamConfigMap {
-  const ret: StreamConfigMap = new Map()
+export function parseMediaOrder(
+  defaultStreamConfig: BaseStreamConfig,
+  streamConfigs: StreamConfig[],
+): StreamConfigMap {
+
+  const ret = new Map() as StreamConfigMap
   const deviceIds: DeviceId[] = []
   let sidx = 0
 
@@ -126,6 +131,7 @@ export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamCon
     if (! labels || ! Array.isArray(labels)) {
       continue
     }
+    // eslint-disable-next-line no-loop-func
     labels.forEach((label) => {
       const deviceId = searchVideoMediaDeviceIdByLabel(label)
 
@@ -159,10 +165,11 @@ export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamCon
 }
 
 /** string/regex match, case insensitive */
-export function searchVideoMediaDeviceIdByLabel(label: MatchLabel): DeviceId | void {
-  if (! label) {
+export function searchVideoMediaDeviceIdByLabel(inputLabel: MatchLabel): DeviceId | void {
+  if (! inputLabel) {
     return
   }
+  let label = inputLabel
 
   if (typeof label === 'string') {
     label = label.trim()
@@ -177,7 +184,7 @@ export function searchVideoMediaDeviceIdByLabel(label: MatchLabel): DeviceId | v
   }
   else if (typeof label === 'object') {
     // regex match
-    const regex = new RegExp(label)
+    const regex = new RegExp(label, 'u')
 
     for (const [id, device] of deviceMap.entries()) {
       if (device.label && regex.test(device.label)) {
@@ -199,7 +206,7 @@ export function getDeviceIdxByDeviceId(deviceId: DeviceId): StreamIdx | void {
 }
 
 export function getMediaDeviceInfo(deviceId: DeviceId): MediaDeviceInfo | null {
-  return deviceId ? <MediaDeviceInfo> deviceMap.get(deviceId) : null
+  return deviceId ? deviceMap.get(deviceId) as MediaDeviceInfo : null
 }
 
 export function getVideoMediaDeviceSize(): number {
@@ -207,17 +214,18 @@ export function getVideoMediaDeviceSize(): number {
 }
 
 
-export function resetDeviceMap() {
+export function resetDeviceMap(): void {
   videoIdxMap.clear()
   deviceMap.clear()
 }
 
-export function stopMediaTracks(stream: MediaStream) {
+export function stopMediaTracks(stream: MediaStream): void {
   try {
-    stream && stream.getTracks()
-      .forEach(track => track.stop && track.stop())
+    stream.getTracks()
+      .forEach(track => track.stop())
   }
   catch (ex) {
     console.info(ex)
   }
 }
+

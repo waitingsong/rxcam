@@ -18,6 +18,7 @@ export function validateStreamConfigs(configs?: StreamConfig[]): void {
   }
 
   for (const config of configs) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (! config) {
       console.error(configs)
       throw new Error('config blank, At least one of width, height should has valid value')
@@ -45,7 +46,11 @@ export function parseStreamConfigs(sconfigs: StreamConfig[], width: number, heig
 }
 
 
-export function parseDefaultStreamConfig(vconfig: VideoConfig, defaultStreamConfig?: Partial<BaseStreamConfig>) {
+export function parseDefaultStreamConfig(
+  _vconfig: VideoConfig,
+  defaultStreamConfig?: Partial<BaseStreamConfig>,
+): BaseStreamConfig {
+
   const ret: BaseStreamConfig = { ...initialDefaultStreamConfig, ...defaultStreamConfig }
 
   return ret

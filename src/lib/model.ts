@@ -102,5 +102,6 @@ export interface RxCamEvent {
   action: Actions
   msg?: string
   err?: Error
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any
 }

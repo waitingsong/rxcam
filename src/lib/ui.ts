@@ -18,6 +18,7 @@ export function initUI(
 ): [VideoConfig, HTMLVideoElement] {
   const config: VideoConfig = { ...initialVideoConfig, ...vconfig }
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (! ctx) {
     throw new Error('ctx not a valid htmlelement')
   }
@@ -44,11 +45,12 @@ function genDOMContainer(
   width: number,
   height: number,
 ): HTMLDivElement {
+
   const div = document.createElement('div')
 
   div.classList.add('rxcam-canvas-container')
-  div.style.width = width + 'px'
-  div.style.height = height + 'px'
+  div.style.width = width.toString() + 'px'
+  div.style.height = height.toString() + 'px'
   div.style.overflow = 'hidden'
   div.style.position = 'relative'
   return div
@@ -66,8 +68,8 @@ function genDOMImg(
   img.classList.add('rxcam-snapshot-preview')
   // img.style.width = width + 'px'
   // img.style.height = height + 'px'
-  img.style.maxWidth = width + 'px'
-  img.style.maxHeight = height + 'px'
+  img.style.maxWidth = width.toString() + 'px'
+  img.style.maxHeight = height.toString() + 'px'
   img.style.position = 'absolute'
   img.style.opacity = '0'
   img.style.top = '0'
@@ -91,15 +93,17 @@ function genDOMVideo(
   video.setAttribute('autoplay', 'autoplay')
   video.width = maxWidth
   video.height = maxHeight
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (video.style) {
-    video.style.width = maxWidth + 'px'
-    video.style.height = maxHeight + 'px'
+    video.style.width = maxWidth.toString() + 'px'
+    video.style.height = maxHeight.toString() + 'px'
   }
 
   if (scaleX !== 1.01 || scaleY !== 1.01) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (video.style) {
       video.style.transformOrigin = '0px 0px'
-      video.style.transform = 'scaleX(' + scaleX + ') scaleY(' + scaleY + ')'
+      video.style.transform = 'scaleX(' + scaleX.toString() + ') scaleY(' + scaleY.toString() + ')'
     }
   }
 
@@ -147,6 +151,7 @@ function showImgPreivew(
 
   const video$ = range$.pipe(
     map((val) => {
+      // eslint-disable-next-line no-mixed-operators
       const op = 1 - val / 10
       return op > 0 ? op : 0
     }),
@@ -219,6 +224,7 @@ function resetImgPreivew(
   )
   const imgOpacity$ = range$.pipe(
     map((val) => {
+      // eslint-disable-next-line no-mixed-operators
       const op = 1 - val / 10
       return op > 0 ? op : 0
     }),
@@ -243,3 +249,4 @@ function resetImgPreivew(
 
   return ret$
 }
+
