@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.1](https://github.com/waitingsong/rxcam/compare/v2.3.0...v2.3.1) (2020-08-14)
+
+
+### Bug Fixes
+
+* **types:** change ConstrainLongRange with ConstrainULongRange ([1d81feb](https://github.com/waitingsong/rxcam/commit/1d81febbc409c1b8fdd51e278db232a11d2ed042))
+
 ## [2.3.0](https://github.com/waitingsong/rxcam/compare/v2.2.0...v2.3.0) (2019-05-22)
 
 
