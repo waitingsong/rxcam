@@ -7,77 +7,81 @@
     {
       "name": "index.ts",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
       "args": [
         "-P", "./tsconfig.cjs.json",
         "src/index.ts"
       ],
       "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
       "protocol": "inspector",
+      "request": "launch",
       "runtimeArgs": [
         "--nolazy"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/rxjs/**/*.js",
+        "<node_internals>/**/*.js"
       ],
       "stopOnEntry": false
     },
     {
       "name": "Current TS File",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
       "args": [
         "-P", "./tsconfig.cjs.json",
         "${relativeFile}"
       ],
       "cwd": "${workspaceRoot}",
+      "program": "${workspaceRoot}/node_modules/ts-node/dist/bin.js",
       "protocol": "inspector",
+      "request": "launch",
       "runtimeArgs": [
         "--nolazy"
+      ],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/rxjs/**/*.js",
+        "<node_internals>/**/*.js"
       ],
       "stopOnEntry": false
     },
     {
-      "name": "Egg Debug",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "debug",
-        "--",
-        "--inspect-brk"
-      ],
-      "console": "integratedTerminal",
-      "restart": true,
-      "protocol": "auto",
-      "port": 9229,
-      "autoAttachChildProcesses": true
-    },
-    {
       "name": "Chrome Debug with Karma",
       "type": "chrome",
-      "request": "attach",
       "address": "localhost",
-      "port": 9333,
       "pathMapping": {
         "/": "${workspaceRoot}/",
         "/base/": "${workspaceRoot}/"
-      }
+      },
+      "port": 9333,
+      "request": "attach"
     },
     {
       "name": "Mocha Tests",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [
         "-u",
-        "tdd",
+        "bdd",
         "--timeout",
         "999999",
         "--colors",
-        "${workspaceFolder}/test"
+        "--parallel=false",
+        // "${workspaceFolder}/test/**/**.test.ts"
       ],
-      "internalConsoleOptions": "openOnSessionStart"
-    }
+      "env": {
+        "NODE_ENV": "local",
+        "TS_NODE_PROJECT": "test/tsconfig.json",
+        "PGHOST": "",
+        "PGUSER": "",
+        "PGPASSWORD": "",
+      },
+      "internalConsoleOptions": "openOnSessionStart",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "request": "launch",
+      "skipFiles": [
+        "${workspaceFolder}/../../node_modules/rxjs/**/*.js",
+        "${workspaceFolder}/node_modules/rxjs/**/*.js",
+        "<node_internals>/**/*.js"
+      ]
+    },
   ]
 }

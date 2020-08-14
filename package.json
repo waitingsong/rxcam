@@ -1,100 +1,121 @@
 {
-  "name": "rxcam",
+  "name": "npm-base",
   "author": "waiting",
-  "version": "2.3.1",
-  "description": "Reactive webcam ECMAScript",
+  "version": "0.0.1",
+  "description": "npm boilerplate",
   "keywords": [
-    "camera",
-    "rxjs",
-    "webcam",
-    "getUserMedia",
-    "mediaDevices"
+    "种子项目",
+    "typescript",
+    "ts"
   ],
-  "browser": "./dist/rxcam.esm.js",
-  "es2015": "./dist/rxcam.esm.js",
+  "bin": {},
+  "browser": "",
+  "es2015": "",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bugs": {
-    "url": "https://github.com/waitingsong/rxcam/issues"
+    "url": "https://github.com/waitingsong/npm-base/issues"
   },
-  "homepage": "https://github.com/waitingsong/rxcam#readme",
+  "homepage": "https://github.com/waitingsong/npm-base#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/waitingsong/rxcam.git"
+    "url": "git+https://github.com/waitingsong/npm-base.git"
   },
   "license": "MIT",
-  "nyc": {
-    "exclude": [
-      "**/*.js",
-      "**/*.test.ts",
-      "**/*.d.ts",
-      "test*",
-      "dist",
-      "src/bin"
-    ],
-    "extension": [
-      ".ts",
-      ".tsx"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "all": true
-  },
   "dependencies": {
-    "@waiting/shared-core": "^1.9.1",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {
-    "@types/mocha": "*",
-    "@types/node": "^12.0.2",
-    "@types/power-assert": "*",
-    "@types/rewire": "*",
-    "@types/rimraf": "*",
-    "@types/yargs": "^13.0.0",
-    "coveralls": "^3.0.3",
-    "intelli-espower-loader": "^1.0.1",
-    "istanbul": "^0.4.5",
-    "mocha": "^5.2.0",
-    "mocha-lcov-reporter": "^1.3.0",
-    "power-assert": ">=1.5",
-    "rewire": "^4.0.0",
-    "rimraf": "^2.6.2",
-    "rollup-plugin-commonjs": "^9.3.4",
-    "rollup-plugin-node-resolve": "^4.2.4",
-    "rollup-plugin-terser": "^4.0.2",
-    "rxrunscript": "^5.2.0",
-    "source-map-support": "^0.5.12",
-    "ts-node": "^8.1.0",
-    "tslint": "^5.16.0",
-    "tslint-eslint-rules": "^5.4.0",
-    "yargs": "^12.0.1"
+    "@commitlint/cli": "8",
+    "@commitlint/config-conventional": "8",
+    "@rollup/plugin-commonjs": "13",
+    "@rollup/plugin-node-resolve": "8",
+    "@types/mocha": "7",
+    "@types/node": "14",
+    "@types/power-assert": "1",
+    "@types/rewire": "2",
+    "@types/rimraf": "3",
+    "@types/yargs": "15",
+    "@waiting/eslint-config": "5",
+    "@waiting/shared-core": "4",
+    "coveralls": "3",
+    "cross-env": "7",
+    "eslint": "7",
+    "espower-typescript": "9",
+    "intelli-espower-loader": "1",
+    "mocha": "8",
+    "mocha-lcov-reporter": "1",
+    "nyc": "15",
+    "power-assert": "1",
+    "rewire": "5",
+    "rimraf": "3",
+    "rollup": "2",
+    "rollup-plugin-terser": "6",
+    "rxrunscript": "5",
+    "ts-node": "8",
+    "typescript": "3",
+    "yargs": "15"
+  },
+  "engines": {
+    "node": ">=12.13.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
     "bp:add": "git remote add bp https://github.com/waitingsong/npm-base",
-    "bp:sync": "git fetch bp && git pull --no-edit bp master",
-    "build": "npm run clean && npm run lint && npm run lint:t && npm run tsc && npm run jslint && npm run rp",
+    "bp:sync": "git fetch --all -v && git merge bp/master -m \"Merge remote-tracking branch 'bp/master'\"",
+    "build": "npm run lint && npm run tsc && npm run rp",
     "devbuild": "npm run clean && npm run tsc:dev && npm run rp",
-    "clean": "rm -rf dist/*",
-    "cov": "nyc mocha",
-    "cov:coveralls": "nyc mocha && nyc report --reporter=text-lcov | coveralls",
-    "jslint": "eslint --fix dist/**/*.js",
+    "clean": "rm -rf dist/* .vscode/.tsbuildinfo .vscode/.tsbuildinfo.* ",
+    "cov": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha",
+    "cov:coveralls": "cross-env TS_NODE_PROJECT=test/tsconfig.json nyc mocha && nyc report --reporter=text-lcov | coveralls",
+    "doc": "typedoc src/index.ts src/lib/index.ts src/lib/model.ts",
     "link_global": "npm link typescript",
-    "lint": "tslint --fix -p tsconfig.json -t stylish",
-    "lint:t": "tslint --fix -p test/tsconfig.json -t stylish",
-    "prepublishOnly": "npm run build",
+    "lint": "eslint --fix --cache {src,test}/**/*.ts",
+    "lint:nofix": "eslint --cache {src,test}/**/*.ts",
+    "postpublish": "git push origin --follow-tags",
+    "prepublishOnly": "npm run clean && npm run build",
     "release": "standard-version -r",
     "release:first": "standard-version --first-release",
     "repo:init": "sh .githooks/init-repo.sh",
     "rp": "rollup -c rollup.config.js",
     "rp:w": "npm run tsc:w | rollup -wc rollup.config.js",
-    "test": "mocha --opts test/mocha.opts",
+    "test": "cross-env TS_NODE_PROJECT=test/tsconfig.json mocha",
     "test:browser": "cd .config && npm run browser && cd ..",
-    "test:debug": "cd .config && npm run debug && cd ..",
+    "browser:debug": "cd .config && npm run debug && cd ..",
     "tsc": "tsc -p tsconfig.json",
     "tsc:dev": "tsc -p tsconfig.dev.json",
     "tsc:w": "tsc -p tsconfig.json -w"
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      ".githooks",
+      "dist",
+      "node_modules*",
+      "src/bin",
+      "src/domain.ts",
+      "src/interface.ts",
+      "test*",
+      "**/node_modules*",
+      "**/*.d.ts",
+      "**/*.js"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "text-summary",
+      "json",
+      "html"
+    ],
+    "all": true
   }
 }
