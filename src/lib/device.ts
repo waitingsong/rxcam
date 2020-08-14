@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/prefer-optional-chain */
-import { assertNever } from '@waiting/shared-core'
 import { concat, defer, from as ofrom, EMPTY, Observable } from 'rxjs'
 import { mergeMap, switchMap, tap, timeout } from 'rxjs/operators'
+
+import { assertNever } from '../../node_modules/@waiting/shared-core/dist/lib/asset'
 
 import {
   deviceMap,

@@ -1,7 +1,7 @@
-import { assertNever } from '@waiting/shared-core'
 import { defer, fromEvent, merge, Observable } from 'rxjs'
 import { mergeMap, pluck, take, tap, timeout } from 'rxjs/operators'
 
+import { assertNever } from '../../node_modules/@waiting/shared-core/dist/lib/asset'
 
 import { inititalThumbnailOpts } from './config'
 import { calcRotationParams } from './helper'
