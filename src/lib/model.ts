@@ -25,16 +25,16 @@ export interface InitialOpts {
 export interface VideoConfig {
   flipHoriz: boolean
   fps: number
-  width: number   // for preview
-  height: number  // for preview
+  width: number // for preview
+  height: number // for preview
   retryRatio?: number // retry lower width/height constraints if connect() fail
 }
 
 export interface BaseStreamConfig {
   width: number
   height: number
-  minWidth?: number,  // for retry connect
-  minHeight?: number, // for retry connect
+  minWidth?: number // for retry connect
+  minHeight?: number // for retry connect
   rotate?: number | null // override by SnapOpt.rotate
 }
 export interface StreamConfig extends BaseStreamConfig {
@@ -64,7 +64,7 @@ export interface SnapOpts {
    * 0: not draw, Default: 0(msec)
    */
   previewSnapRetTime: number
-  rotate: number | null  // angular
+  rotate: number | null // angular
   streamIdx: StreamIdx
   snapDelay: number
   switchDelay: number

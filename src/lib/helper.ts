@@ -1,10 +1,8 @@
-import {
-  ImgOpts, SnapOpts,
-} from './model'
+import { ImgOpts, SnapOpts } from './model'
 
 
 /** Calculate image resize width/height */
-export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxPixel: number = 1600) {
+export function calcImgThumbResolution(imgWidth: number, imgHeight: number, maxPixel = 1600) {
   const ret: Partial<ImgOpts> = {
     width: +imgWidth,
     height: +imgHeight,

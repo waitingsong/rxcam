@@ -3,9 +3,7 @@ import { mapTo, mergeMap } from 'rxjs/operators'
 
 import { mediaDevices } from './config'
 import { getMediaDeviceByDeviceId, stopMediaTracks } from './device'
-import {
-  DeviceId,
-} from './model'
+import { DeviceId } from './model'
 
 
 /** Switch camera by deviceId */
@@ -36,7 +34,7 @@ export function switchVideoByDeviceId(
   }
 
   const ret$ = defer(() => mediaDevices.getUserMedia(constrains)).pipe(
-    mergeMap(stream => {
+    mergeMap((stream) => {
       if (stream && video) {
         return defer(() => attachStream(stream, video)).pipe(
           mapTo(constrains),

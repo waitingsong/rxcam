@@ -1,9 +1,9 @@
 import { concat, forkJoin, interval, of, Observable } from 'rxjs'
-import { delay, last, map, mapTo, shareReplay, skip, take, tap } from 'rxjs/operators'
-
 import {
-  blankImgURL, initialVideoConfig,
-} from './config'
+  delay, last, map, mapTo, shareReplay, skip, take, tap,
+} from 'rxjs/operators'
+
+import { blankImgURL, initialVideoConfig } from './config'
 import {
   StreamConfig,
   VideoConfig,
@@ -18,7 +18,7 @@ export function initUI(
 ): [VideoConfig, HTMLVideoElement] {
   const config: VideoConfig = { ...initialVideoConfig, ...vconfig }
 
-  if (!ctx) {
+  if (! ctx) {
     throw new Error('ctx not a valid htmlelement')
   }
   if (! config.width || config.width < 0 || ! config.height || config.height < 0) {
@@ -32,8 +32,8 @@ export function initUI(
   const video = genDOMVideo(config.width, config.height, maxWidth, maxHeight)
   const img = genDOMImg(config.width, config.height)
 
-  div.appendChild(video)  // top
-  div.appendChild(img)  // bottom
+  div.appendChild(video) // top
+  div.appendChild(img) // bottom
   ctx.appendChild(div)
 
   return [config, video]
@@ -59,7 +59,7 @@ function genDOMContainer(
 function genDOMImg(
   width: number,
   height: number,
- ): HTMLImageElement {
+): HTMLImageElement {
 
   const img = document.createElement('img')
 
@@ -82,7 +82,7 @@ function genDOMVideo(
   height: number,
   maxWidth: number,
   maxHeight: number,
- ): HTMLVideoElement {
+): HTMLVideoElement {
 
   const scaleX = width / maxWidth
   const scaleY = height / maxHeight
@@ -125,7 +125,7 @@ export function toggleImgPreview(
   element: HTMLImageElement,
   data: string,
   video: HTMLVideoElement,
-  ): Observable<null> {
+): Observable<null> {
 
   return data
     ? showImgPreivew(element, data, video)
@@ -146,27 +146,27 @@ function showImgPreivew(
   )
 
   const video$ = range$.pipe(
-    map(val => {
+    map((val) => {
       const op = 1 - val / 10
       return op > 0 ? op : 0
     }),
-    tap(val => {
+    tap((val) => {
       video.style.opacity = `${val}`
     }),
   )
 
   const imgSrc$ = of(data).pipe(
-    tap(url => {
+    tap((url) => {
       element.src = url
     }),
   )
   const imgOpacity$ = range$.pipe(
     delay(intv * 3),
-    map(val => {
+    map((val) => {
       const op = val / 10
       return op < 1 ? op : 1
     }),
-    tap(val => {
+    tap((val) => {
       element.style.opacity = `${val}`
     }),
   )
@@ -203,26 +203,26 @@ function resetImgPreivew(
 
   const video$ = range$.pipe(
     delay(intv * 4),
-    map(val => {
+    map((val) => {
       const op = val / 10
       return op < 1 ? op : 1
     }),
-    tap(val => {
+    tap((val) => {
       video.style.opacity = `${val}`
     }),
   )
 
   const imgSrc$ = of(data).pipe(
-    tap(url => {
+    tap((url) => {
       element.src = url
     }),
   )
   const imgOpacity$ = range$.pipe(
-    map(val => {
+    map((val) => {
       const op = 1 - val / 10
       return op > 0 ? op : 0
     }),
-    tap(val => {
+    tap((val) => {
       element.style.opacity = `${val}`
     }),
     last(),

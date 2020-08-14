@@ -30,7 +30,7 @@ export function takePhoto(video: HTMLVideoElement, sopts: SnapOpts): Promise<str
       cvs2.width = w
       cvs2.height = h
 
-      drawRotated(cvs2, cvs, angular)    // rotate image
+      drawRotated(cvs2, cvs, angular) // rotate image
       cvs.width = cvs.height = 0
 
       return exportFromCanvas(cvs2, sopts)
@@ -54,7 +54,7 @@ export function takeThumbnail(image: string | HTMLImageElement, options?: Partia
     const img = new Image()
     const ret$ = fromEvent<Event>(img, 'load').pipe(
       pluck<Event, HTMLImageElement>('target'),
-      tap(target => {
+      tap((target) => {
         ctx.drawImage(target, 0, 0, opts.width, opts.height)
       }),
       mergeMap(() => exportFromCanvas(cvs, opts)),
@@ -89,7 +89,7 @@ export function genCanvas(width: number, height: number): HTMLCanvasElement {
   cvs.height = height
   const ctx = cvs.getContext('2d')
 
-  if (!ctx) {
+  if (! ctx) {
     throw new Error('create ctx invalid during snapshot')
   }
 
@@ -107,7 +107,7 @@ export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Prom
 
       case 'objectURL':
       case 'objecturl':
-        return cvs.toBlob(blob => {
+        return cvs.toBlob((blob) => {
           // need call URL.revokeObjectURL(ourl) later
           resolve(blob ? URL.createObjectURL(blob) : '')
         }, 'image/' + options.imageFormat, options.jpegQuality / 100)
@@ -122,7 +122,7 @@ export function exportFromCanvas(cvs: HTMLCanvasElement, options: ImgOpts): Prom
 function drawRotated(cvs: HTMLCanvasElement, image: HTMLCanvasElement | HTMLImageElement, degrees: number): void {
   const ctx = cvs.getContext('2d')
 
-  if (!ctx) {
+  if (! ctx) {
     throw new Error('canvas context invalud')
   }
 

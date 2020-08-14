@@ -69,12 +69,18 @@ import { calcVideoMaxResolution, initUI, toggleImgPreview } from './ui'
 
 
 export class RxCam {
+
   curStreamIdx: StreamIdx
+
   sconfigMap: StreamConfigMap
+
   eventObb: Observable<RxCamEvent>
-  private deviceChangeSub: Subscription
+
+  private readonly deviceChangeSub: Subscription
+
   private disconnectBeforeSwitch = false
-  private subject: Subject<RxCamEvent>
+
+  private readonly subject: Subject<RxCamEvent>
 
   constructor(
     public uiContext: HTMLElement,
@@ -120,7 +126,7 @@ export class RxCam {
   }
 
   isPlaying(): boolean {
-    return this.video && this.video.played.length ? true : false
+    return !! (this.video && this.video.played.length)
   }
 
   getDeviceIdFromMap(sidx: StreamIdx): DeviceId {
@@ -166,7 +172,9 @@ export class RxCam {
   snapshot(snapOpts?: Partial<SnapOpts>): Observable<ImgCaptureRet> {
     const { width, height } = this.getStreamResolution(this.curStreamIdx)
     const sopts: SnapOpts = snapOpts
-      ? { ...this.snapOpts, width, height, ...snapOpts }
+      ? {
+        ...this.snapOpts, width, height, ...snapOpts,
+      }
       : { ...this.snapOpts, width, height }
     const { snapDelay, previewSnapRetSelector, previewSnapRetTime } = sopts
 
@@ -186,7 +194,7 @@ export class RxCam {
       //     payload: { sopts, url },
       //   })
       // }),
-      map(url => {
+      map((url) => {
         return <ImgCaptureRet> { url, options: sopts }
       }),
       catchError((err: Error) => {
@@ -207,7 +215,7 @@ export class RxCam {
     )
 
     const preview$ = snap$.pipe(
-      switchMap(ret => {
+      switchMap((ret) => {
         if (previewSnapRetTime > 0) {
           const elm = previewSnapRetSelector
             ? <HTMLImageElement> document.querySelector(previewSnapRetSelector)
@@ -269,19 +277,19 @@ export class RxCam {
 
   private processDeviceChange() {
     const ret$ = handleDeviceChange(deviceChangeObb, this.deviceChangeDelay).pipe(
-      tap(mediaCount => {
+      tap((mediaCount) => {
         this.subject.next({
           ...initialEvent,
           action: mediaCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
         })
       }),
-      tap(size => {
+      tap((size) => {
         if (size > 0) { // device changed
           this.sconfigMap = parseMediaOrder(this.dsconfig, this.streamConfigs)
 
           if (this.sconfigMap.size) {
             try {
-              this.getSConfig(this.curStreamIdx)  // ready
+              this.getSConfig(this.curStreamIdx) // ready
             }
             catch (ex) {
               this.disconnect()
@@ -291,13 +299,13 @@ export class RxCam {
             this.disconnect()
           }
         }
-        else {  // device removed
+        else { // device removed
           this.sconfigMap.clear()
           this.disconnect()
         }
       }),
-      switchMap(size => {
-        if (this.getAllVideoInfo().length && !this.isPlaying()) {
+      switchMap((size) => {
+        if (this.getAllVideoInfo().length && ! this.isPlaying()) {
           return this.connect(this.curStreamIdx).pipe(
             mapTo(size),
           )
@@ -329,12 +337,12 @@ export class RxCam {
     sidx: StreamIdx,
     width: number,
     height: number,
-   ): Observable<MediaStreamConstraints> {
+  ): Observable<MediaStreamConstraints> {
 
     const ret$ = switchVideoByDeviceId(deviceId, video, width, height).pipe(
       catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),
-      catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)),  // catch twice
-      tap(constraints => {
+      catchError((err: Error) => this.retryConnect(err, deviceId, sidx, width, height)), // catch twice
+      tap((constraints) => {
         const vOpts = <MediaTrackConstraints> constraints.video
         const w = <number> (<ConstrainULongRange> vOpts.width).ideal
         const h = <number> (<ConstrainULongRange> vOpts.height).ideal
@@ -364,7 +372,7 @@ export class RxCam {
   private initEvent(): Observable<RxCamEvent> {
     const innerSubject$ = this.subject.asObservable()
     const deviceChange$ = this.processDeviceChange().pipe(
-      map(mediaDeviceCount => {
+      map((mediaDeviceCount) => {
         return <RxCamEvent> {
           ...initialEvent,
           action: mediaDeviceCount > 0 ? Actions.deviceChange : Actions.deviceRemoved,
@@ -535,14 +543,16 @@ export function RxCamFactory(options: InitialOpts): Observable<RxCam> {
     vi: video,
     dsc: defaultStreamConfig2,
     st: streamConfigs2,
-    de: (typeof deviceChangeDelay === 'number' && deviceChangeDelay > 0
+    de: typeof deviceChangeDelay === 'number' && deviceChangeDelay > 0
       ? deviceChangeDelay
-      : initialDeviceChangDelay),
+      : initialDeviceChangDelay,
   }
 
   const inst$ = of(initArgs).pipe(
-    mergeMap(opts => {
-      const { c, v, s, vi, dsc, st, de } = opts
+    mergeMap((opts) => {
+      const {
+        c, v, s, vi, dsc, st, de,
+      } = opts
       return of(new RxCam(c, v, s, vi, dsc, st, de))
     }),
   )

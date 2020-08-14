@@ -18,7 +18,7 @@ import {
 } from './model'
 
 
-export function invokePermission(timeoutValue: number = 10000): Observable<never> {
+export function invokePermission(timeoutValue = 10000): Observable<never> {
   const stream$: Observable<MediaStream> = defer(() => {
     return mediaDevices.getUserMedia({
       audio: false,
@@ -27,7 +27,7 @@ export function invokePermission(timeoutValue: number = 10000): Observable<never
   })
 
   return stream$.pipe(
-    switchMap(stream => {
+    switchMap((stream) => {
       stream && stopMediaTracks(stream)
       return EMPTY
     }),
@@ -126,7 +126,7 @@ export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamCon
     if (! labels || ! Array.isArray(labels)) {
       continue
     }
-    labels.forEach(label => {
+    labels.forEach((label) => {
       const deviceId = searchVideoMediaDeviceIdByLabel(label)
 
       if (deviceId) {
@@ -160,7 +160,7 @@ export function parseMediaOrder(defaultStreamConfig: BaseStreamConfig, streamCon
 
 /** string/regex match, case insensitive */
 export function searchVideoMediaDeviceIdByLabel(label: MatchLabel): DeviceId | void {
-  if (!label) {
+  if (! label) {
     return
   }
 

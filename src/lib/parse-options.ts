@@ -1,6 +1,4 @@
-import {
-  initialDefaultStreamConfig,
-} from './config'
+import { initialDefaultStreamConfig } from './config'
 import {
   BaseStreamConfig,
   StreamConfig,
@@ -9,18 +7,18 @@ import {
 
 
 export function validateStreamConfigs(configs?: StreamConfig[]): void {
-  if (!configs) {
+  if (! configs) {
     return
   }
-  if (!Array.isArray(configs)) {
+  if (! Array.isArray(configs)) {
     throw new Error('streamConfigs must be Array')
   }
-  if (!configs.length) {
+  if (! configs.length) {
     return
   }
 
   for (const config of configs) {
-    if (!config) {
+    if (! config) {
       console.error(configs)
       throw new Error('config blank, At least one of width, height should has valid value')
     }
@@ -33,7 +31,7 @@ export function validateStreamConfigs(configs?: StreamConfig[]): void {
  */
 export function parseStreamConfigs(sconfigs: StreamConfig[], width: number, height: number): StreamConfig[] {
   for (const sconfig of sconfigs) {
-    if (!sconfig.width && !sconfig.height) {
+    if (! sconfig.width && ! sconfig.height) {
       sconfig.width = +width
       sconfig.height = +height
     }
