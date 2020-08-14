@@ -26,7 +26,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@waiting/shared-core": "^1.9.1",
+    "@waiting/shared-core": "5",
     "rxjs": "^6.5.2"
   },
   "devDependencies": {
@@ -41,7 +41,6 @@
     "@types/rimraf": "3",
     "@types/yargs": "15",
     "@waiting/eslint-config": "5",
-    "@waiting/shared-core": "4",
     "coveralls": "3",
     "cross-env": "7",
     "eslint": "7",
